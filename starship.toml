@@ -1,0 +1,6 @@
+# Custom module configuration for Starship prompt integration
+[custom.mesugaki]
+command = "~/.local/bin/mesu-starship.sh $STARSHIP_CMD_STATUS"
+when = 'test "$STARSHIP_CMD_STATUS" -ne 0'
+style = "bold purple"
+format = "[$output]($style)\n"

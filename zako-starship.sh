@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# mesu-starship.sh - The Hostile Ergonomics Terminal Hook
+# zako-starship.sh - The Hostile Ergonomics Terminal Hook
 
 # Capture the exit code of the last command and the command string itself
 EXIT_CODE=$1
@@ -39,5 +39,5 @@ RESPONSE=$(curl -s --max-time 1.5 -X POST "$LLAMA_ENDPOINT" \
 
 # Print formatted output with ANSI magenta styling if a valid response exists
 if [ -n "$RESPONSE" ] && [ "$RESPONSE" != "null" ]; then
-    printf "\033[1;35m♡ Mesugaki: %s\033[0m\n" "$RESPONSE"
+    printf "\033[1;35m♡ : %s\033[0m\n" "$RESPONSE"
 fi

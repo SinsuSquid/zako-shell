@@ -58,12 +58,13 @@ git: 'psh' is not a git command. See 'git --help'.
 ## 🚀 Quick Start (Summoning the Daemon)
 
 ### 1. Download Model (CPU-friendly)
-Download `Qwen2.5-0.5B-Instruct-Q4_K_M.gguf` into `models/`:
+Download `Qwen2.5-1.5B-Instruct-Q4_K_M.gguf` (~1.1 GB, default) into `models/`:
 ```bash
 mkdir -p models
-curl -L -o models/qwen2.5-0.5b-instruct-q4_k_m.gguf \
-  "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+curl -L -o models/qwen2.5-1.5b-instruct-q4_k_m.gguf \
+  "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf"
 ```
+*(Optional: For low-RAM machines, the 0.5B model `qwen2.5-0.5b-instruct-q4_k_m.gguf` is also supported as an automatic fallback).*
 
 ### 2. Launch the Local Daemon
 Run in background via helper script:

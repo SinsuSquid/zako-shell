@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# zako-starship.sh - The Hostile Ergonomics Terminal Hook
+# zako.sh - The Hostile Ergonomics Terminal Hook
 
 # Capture exit code ($1) and optional command string ($2)
 EXIT_CODE="${1:-1}"

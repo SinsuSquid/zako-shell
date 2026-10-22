@@ -18,7 +18,7 @@
   と＿)_)
 ```
 
-**An offline, zero-latency Starship prompt module powered by `llama.cpp`**  
+**An offline, zero-latency Hostile Ergonomics shell hook powered by `llama.cpp`**  
 *Because why should GitHub Copilot politely fix your typos when a bratty local sLLM can bully you for them instead?*
 
 ---
@@ -50,8 +50,8 @@ git: 'psh' is not a git command. See 'git --help'.
 ## 🛠️ Prerequisites
 
 - **[`llama.cpp`](https://github.com/ggerganov/llama.cpp)**: Specifically `llama-server` installed on your `$PATH` or in `~/.local/bin/llama-server`.
-- **`curl` & `jq`**: For talking to the local daemon and formatting payloads.
-- **[`starship`](https://starship.rs)**: The cross-shell prompt.
+- **`curl` & `jq`**: For querying the local daemon and formatting payloads.
+- *Any shell!* (Bash, Zsh, Fish — works natively with or without prompt themes like Starship, Oh-My-Zsh, etc.)
 
 ---
 
@@ -82,74 +82,59 @@ systemctl --user daemon-reload
 systemctl --user enable --now zako-daemon
 ```
 
-### 3. Test the Hook Directly
-Symlink the hook script into your `$PATH`:
+### 3. Install the Hook Binary
+Symlink `zako.sh` into your `$PATH`:
 ```bash
 mkdir -p ~/.local/bin
-ln -sf "$(pwd)/zako-starship.sh" ~/.local/bin/zako-starship.sh
+ln -sf "$(pwd)/zako.sh" ~/.local/bin/zako.sh
 
 # Run a test roast manually:
-zako-starship.sh 1 "git psh"
+zako.sh 1 "git psh"
 ```
 
 ---
 
-## 🎀 Starship & Shell Configuration
+## 🐚 Shell Hook Integration
 
-### 1. Configure `~/.config/starship.toml`
-Add or merge the following into your `~/.config/starship.toml`:
+No complicated prompt theme configuration required! Hook it natively into your favorite shell:
 
-```toml
-# 1. Give local CPU inference enough time (default 500ms is too tight for LLMs)
-command_timeout = 2000
-
-# 2. Place ${custom.zako} right above your prompt line
-format = """
-$all\
-${custom.zako}\
-$character"""
-
-# 3. Define the custom module
-[custom.zako]
-command = "$HOME/.local/bin/zako-starship.sh $STARSHIP_CMD_STATUS \"$LAST_COMMAND\""
-when = 'test -n "$STARSHIP_CMD_STATUS" && test "$STARSHIP_CMD_STATUS" -ne 0'
-format = "$output\n"
-```
-
-> [!NOTE]
-> Custom modules in Starship are **not rendered by default** unless explicitly referenced in your prompt's `format` string (via `${custom.zako}` or `$custom`).
-
-### 2. Export Status & Command in Your Shell
-Starship computes the exit status internally, but non-interactive subshells need it exported.
-
-#### For **Bash** (add to `~/.bashrc`):
+### 1. **Bash** (Native)
+Add to your `~/.bashrc`:
 ```bash
-export STARSHIP_CMD_STATUS=0
-export LAST_COMMAND=""
-_ZAKO_LAST_HIST_ENTRY=""
-
-eval "$(starship init bash)"
-
-starship_precmd_user_func() {
-    local CURR_HIST
-    CURR_HIST=$(HISTTIMEFORMAT= history 1 2>/dev/null)
-    if [ -n "$CURR_HIST" ] && [ "$CURR_HIST" = "$_ZAKO_LAST_HIST_ENTRY" ]; then
-        # Pressing Enter on empty line restores regular clean prompt
-        STARSHIP_CMD_STATUS=0
-    else
-        _ZAKO_LAST_HIST_ENTRY="$CURR_HIST"
+_ZAKO_LAST_HIST=""
+_zako_precmd() {
+    local code=$?
+    local curr_hist
+    curr_hist=$(HISTTIMEFORMAT= history 1 2>/dev/null)
+    if [ "$code" -ne 0 ] && [ -n "$curr_hist" ] && [ "$curr_hist" != "$_ZAKO_LAST_HIST" ]; then
+        ~/.local/bin/zako.sh "$code" "$(echo "$curr_hist" | sed 's/^[ ]*[0-9]*[ ]*//')"
     fi
-    export STARSHIP_CMD_STATUS
-    export LAST_COMMAND=$(echo "$CURR_HIST" | sed 's/^[ ]*[0-9]*[ ]*//')
+    _ZAKO_LAST_HIST="$curr_hist"
+}
+PROMPT_COMMAND="_zako_precmd${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
+```
+
+*(Note for Starship users on Bash: place inside `starship_precmd_user_func` instead!)*
+
+### 2. **Zsh**
+Add to your `~/.zshrc`:
+```zsh
+preexec() { _ZAKO_LAST_CMD="$1"; }
+precmd() {
+    local code=$?
+    if [ $code -ne 0 ] && [ -n "$_ZAKO_LAST_CMD" ]; then
+        ~/.local/bin/zako.sh "$code" "$_ZAKO_LAST_CMD"
+        _ZAKO_LAST_CMD=""
+    fi
 }
 ```
 
-#### For **Zsh** (add to `~/.zshrc`):
-```zsh
-preexec() {
-    export LAST_COMMAND="$1"
-}
-precmd() {
-    export STARSHIP_CMD_STATUS="$?"
-}
+### 3. **Fish**
+Add to your `~/.config/fish/config.fish`:
+```fish
+function __zako_fail --on-event fish_postexec
+    if test $status -ne 0
+        ~/.local/bin/zako.sh $status "$argv[1]"
+    end
+end
 ```

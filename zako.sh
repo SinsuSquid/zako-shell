@@ -51,7 +51,7 @@ PAYLOAD=$(jq -n \
   }')
 
 # Request inference with a hard timeout to prevent blocking the shell prompt
-RESPONSE=$(curl -s --max-time 1.5 -X POST "$LLAMA_ENDPOINT" \
+RESPONSE=$(curl -s --max-time 2.5 -X POST "$LLAMA_ENDPOINT" \
   -H "Content-Type: application/json" \
   -d "$PAYLOAD" 2>/dev/null | jq -r '.choices[0].message.content' 2>/dev/null)
 

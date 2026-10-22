@@ -2,7 +2,13 @@
 # zako-daemon.sh - Management script for the local llama-server daemon
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODEL_PATH="${MODEL_PATH:-$SCRIPT_DIR/models/qwen2.5-0.5b-instruct-q4_k_m.gguf}"
+if [ -z "$MODEL_PATH" ]; then
+    if [ -f "$SCRIPT_DIR/models/qwen2.5-1.5b-instruct-q4_k_m.gguf" ]; then
+        MODEL_PATH="$SCRIPT_DIR/models/qwen2.5-1.5b-instruct-q4_k_m.gguf"
+    else
+        MODEL_PATH="$SCRIPT_DIR/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+    fi
+fi
 LLAMA_SERVER="${LLAMA_SERVER:-$HOME/.local/bin/llama-server}"
 LIB_DIR="${LIB_DIR:-$HOME/.local/lib64}"
 PID_FILE="/tmp/zako-llama-server.pid"
@@ -35,14 +41,14 @@ start_daemon() {
     fi
 
     echo "Starting zako-daemon on CPU ($HOST:$PORT)..."
-    nohup "$LLAMA_SERVER" \
+    env LD_LIBRARY_PATH="$LIB_DIR" nohup "$LLAMA_SERVER" \
         -m "$MODEL_PATH" \
         --host "$HOST" \
         --port "$PORT" \
         -ngl 0 \
         -t "$THREADS" \
         -c "$CTX_SIZE" \
-        --log-disable > "$LOG_FILE" 2>&1 &
+        -lv 0 > "$LOG_FILE" 2>&1 &
 
     local pid=$!
     echo "$pid" > "$PID_FILE"

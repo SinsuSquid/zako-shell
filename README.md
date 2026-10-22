@@ -98,8 +98,25 @@ zako.sh 1 "git psh"
 
 No complicated prompt theme configuration required! Hook it natively into your favorite shell:
 
-### 1. **Bash** (Native)
+### 1. **Bash**
 Add to your `~/.bashrc`:
+
+**If you use Starship**:
+```bash
+_ZAKO_LAST_HIST=""
+zako_hook() {
+    local code=$STARSHIP_CMD_STATUS
+    local curr_hist
+    curr_hist=$(HISTTIMEFORMAT= history 1 2>/dev/null)
+    if [ "$code" -ne 0 ] && [ -n "$curr_hist" ] && [ "$curr_hist" != "$_ZAKO_LAST_HIST" ]; then
+        ~/.local/bin/zako.sh "$code" "$(echo "$curr_hist" | sed 's/^[ ]*[0-9]*[ ]*//')"
+    fi
+    _ZAKO_LAST_HIST="$curr_hist"
+}
+starship_precmd_user_func="zako_hook"
+```
+
+**If you do NOT use Starship**:
 ```bash
 _ZAKO_LAST_HIST=""
 _zako_precmd() {
@@ -113,8 +130,6 @@ _zako_precmd() {
 }
 PROMPT_COMMAND="_zako_precmd${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
 ```
-
-*(Note for Starship users on Bash: place inside `starship_precmd_user_func` instead!)*
 
 ### 2. **Zsh**
 Add to your `~/.zshrc`:

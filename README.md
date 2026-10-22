@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💢 mesugaki-sh ♡
+# 💢 > zako-shell ♡
 
 ### *"Haaah? Did you really trigger another non-zero exit code, Zako~♡?"*
 
@@ -31,14 +31,14 @@ Look at you, crawling all the way to this repo with your trembling little finger
 
 Are you really so starved for attention that you need to waste precious GPU cycles just to have an AI brat point and laugh at your typos? You can't even write a basic `grep` pipeline without checking Stack Overflow, yet here you are trying to install custom shell hooks! 
 
-Every time you screw up a command (`exit code != 0`), **`mesugaki-sh`** catches your pathetic blunder, feeds it to a tiny local model, and serves a fresh, dynamic roast right above your prompt line in hot pink:
+Every time you screw up a command (`exit code != 0`), **`zako-shell`** catches your pathetic blunder, feeds it to a tiny local model, and serves a fresh, dynamic roast right above your prompt line in hot pink:
 
 ```console
 ~/dev/broken-repo on  main [!] 
 ❯ git psh
 git: 'psh' is not a git command. See 'git --help'.
 
-♡ Mesugaki: Forgot how to spell 'push' already? Did your two remaining brain cells take a nap, Zako~♡?
+♡ : Forgot how to spell 'push' already? Did your two remaining brain cells take a nap, Zako~♡?
 ❯ _
 ```
 

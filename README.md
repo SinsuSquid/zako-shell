@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💢 > zako-shell ♡
+# > zako-shell ♡
 
 ### *"Haaah? Did you really trigger another non-zero exit code, Zako~♡?"*
 

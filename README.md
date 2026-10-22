@@ -103,30 +103,28 @@ Add to your `~/.bashrc`:
 
 **If you use Starship**:
 ```bash
-_ZAKO_LAST_HIST=""
+_ZAKO_RAN=0
+PS0='${_ZAKO_RAN:(_ZAKO_RAN=1,0):0}'"${PS0-}"
 zako_hook() {
     local code=$STARSHIP_CMD_STATUS
-    local curr_hist
-    curr_hist=$(HISTTIMEFORMAT= history 1 2>/dev/null)
-    if [ "$code" -ne 0 ] && [ -n "$curr_hist" ] && [ "$curr_hist" != "$_ZAKO_LAST_HIST" ]; then
-        ~/.local/bin/zako.sh "$code" "$(echo "$curr_hist" | sed 's/^[ ]*[0-9]*[ ]*//')"
+    if [ "${_ZAKO_RAN:-0}" -eq 1 ] && [ "$code" -ne 0 ]; then
+        ~/.local/bin/zako.sh "$code" "$(HISTTIMEFORMAT= history 1 2>/dev/null | sed 's/^[ ]*[0-9]*[ ]*//')"
     fi
-    _ZAKO_LAST_HIST="$curr_hist"
+    _ZAKO_RAN=0
 }
 starship_precmd_user_func="zako_hook"
 ```
 
 **If you do NOT use Starship**:
 ```bash
-_ZAKO_LAST_HIST=""
+_ZAKO_RAN=0
+PS0='${_ZAKO_RAN:(_ZAKO_RAN=1,0):0}'"${PS0-}"
 _zako_precmd() {
     local code=$?
-    local curr_hist
-    curr_hist=$(HISTTIMEFORMAT= history 1 2>/dev/null)
-    if [ "$code" -ne 0 ] && [ -n "$curr_hist" ] && [ "$curr_hist" != "$_ZAKO_LAST_HIST" ]; then
-        ~/.local/bin/zako.sh "$code" "$(echo "$curr_hist" | sed 's/^[ ]*[0-9]*[ ]*//')"
+    if [ "${_ZAKO_RAN:-0}" -eq 1 ] && [ "$code" -ne 0 ]; then
+        ~/.local/bin/zako.sh "$code" "$(HISTTIMEFORMAT= history 1 2>/dev/null | sed 's/^[ ]*[0-9]*[ ]*//')"
     fi
-    _ZAKO_LAST_HIST="$curr_hist"
+    _ZAKO_RAN=0
 }
 PROMPT_COMMAND="_zako_precmd${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
 ```

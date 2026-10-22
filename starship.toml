@@ -1,6 +1,14 @@
-# Custom module configuration for Starship prompt integration
+# Starship configuration for zako-shell
+# 1. Increase command timeout to give local CPU LLM inference enough headroom (default is 500ms)
+command_timeout = 2000
+
+# 2. Ensure ${custom.zako} is included in your prompt format (typically above the prompt character)
+format = """
+$all\
+${custom.zako}\
+$character"""
+
 [custom.zako]
-command = "~/.local/bin/mesu-starship.sh $STARSHIP_CMD_STATUS"
-when = 'test "$STARSHIP_CMD_STATUS" -ne 0'
-style = "bold purple"
-format = "[$output]($style)\n"
+command = "$HOME/.local/bin/zako-starship.sh $STARSHIP_CMD_STATUS \"$LAST_COMMAND\""
+when = 'test -n "$STARSHIP_CMD_STATUS" && test "$STARSHIP_CMD_STATUS" -ne 0'
+format = "$output\n"

@@ -62,7 +62,7 @@ Why does this work better than a standard linter?
 When a senior engineer makes a syntax error, their instinct is to blame the language, the framework, or the operating system. But when a prompt displays:
 
 ```Shell
-♡ Mesugaki: Look at you begging for sudo like a helpless baby, Zako~♡
+🐟: Look at you begging for sudo like a helpless baby, Zako~♡
 ```
 The delusion of mastery instantly evaporates. The engineer cannot argue with the machine. The engineer cannot claim architectural nuance. They just got called a small fry by a quantized model running on their own integrated GPU.
 
@@ -91,7 +91,7 @@ A standard AI tool says:
 
 This breeds learned helplessness. `mesugaki-sh` instead outputs:
 ```Shell
-♡ Mesugaki: Can't spell a five-letter English word without a stroke, Zako~♡?
+🐟: Can't spell a five-letter English word without a stroke, Zako~♡?
 ```
 By refusing to fix the command, the tool forces the developer to manually backspace, acknowledge the typo in absolute shame, and re-type it correctly. The corrective reinforcement is internal, physical, and permanent.
 

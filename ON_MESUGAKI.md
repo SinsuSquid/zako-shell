@@ -69,7 +69,7 @@ The delusion of mastery instantly evaporates. The engineer cannot argue with the
 ### 2. Spite-Driven Development (SDD)
 Fear of failure creates timid engineers. Fear of being ridiculed by an artificial brat creates hyper-vigilant engineers.
 
-After three hours under `mesugaki-sh`, users report:
+After three hours under `zako-shell`, users report:
 
 A 400% reduction in typing speed variance (due to terror before pressing `Enter`).
 
@@ -89,7 +89,7 @@ A standard AI tool says:
 
 > "Did you mean `cargo build`? Click here to run it."
 
-This breeds learned helplessness. `mesugaki-sh` instead outputs:
+This breeds learned helplessness. `zako-shell` instead outputs:
 ```Shell
 🐟: Can't spell a five-letter English word without a stroke, Zako~♡?
 ```

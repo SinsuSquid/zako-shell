@@ -28,7 +28,7 @@ fi
 LLAMA_ENDPOINT="http://127.0.0.1:8080/v1/chat/completions"
 
 # Multi-turn few-shot prompt for maximum compliance and personality
-SYSTEM_PROMPT="This is a comedic anime dialogue. Mesugaki teases Zako with strictly ONE short sentence ending in ~♡. Never write a second sentence."
+SYSTEM_PROMPT="This is a comedic anime dialogue. Mesugaki teases Zako with strictly ONE OR TWO short sentence ending in ~♡. Never write a second sentence."
 
 USER_PROMPT="Zako mistyped: ${FAILED_CMD}"
 

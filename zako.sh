@@ -1,16 +1,29 @@
 #!/usr/bin/env bash
 # zako.sh - The Hostile Ergonomics Terminal Hook
 
-# Capture exit code ($1) and optional command string ($2)
-EXIT_CODE="${1:-1}"
+# Robust argument parsing: supports ($EXIT_CODE, $FAILED_CMD), ($FAILED_CMD, $EXIT_CODE), or single argument
+if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    EXIT_CODE="$1"
+    FAILED_CMD="${2:-}"
+elif [[ "${2:-}" =~ ^[0-9]+$ ]]; then
+    EXIT_CODE="$2"
+    FAILED_CMD="${1:-}"
+else
+    EXIT_CODE="${1:-1}"
+    FAILED_CMD="${2:-}"
+    # If $1 was non-empty and non-numeric, treat it as the failed command with default exit code 1
+    if [ -n "$1" ] && [ -z "$2" ]; then
+        EXIT_CODE=1
+        FAILED_CMD="$1"
+    fi
+fi
 
 # Exit immediately if the command succeeded
-if [ "$EXIT_CODE" -eq 0 ]; then
+if [ "$EXIT_CODE" -eq 0 ] 2>/dev/null; then
     exit 0
 fi
 
-# Attempt to capture command from argument $2, /tmp/.zako_last_cmd, or fc
-FAILED_CMD="$2"
+# Attempt to capture command from argument, /tmp/.zako_last_cmd, or fc
 if [ -z "$FAILED_CMD" ]; then
     if [ -s "/tmp/.zako_last_cmd" ]; then
         FAILED_CMD=$(cat /tmp/.zako_last_cmd 2>/dev/null)

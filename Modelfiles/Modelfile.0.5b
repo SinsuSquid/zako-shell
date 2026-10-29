@@ -1,5 +1,5 @@
 # zako-shell Modelfile for Ollama (0.5B Model)
-# Build with: ollama create zako-tease:0.5b -f Modelfile.0.5b
+# Build with: ollama create zako-tease:0.5b -f Modelfiles/Modelfile.0.5b
 
 FROM qwen2.5:0.5b
 

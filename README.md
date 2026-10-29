@@ -59,11 +59,11 @@ Both **1.5B** (rich contextual wit) and **0.5B** (ultra-low VRAM & zero latency)
 ```bash
 # === 1.5B Model (Recommended default) ===
 ollama pull qwen2.5:1.5b
-ollama create zako-tease -f Modelfile
+ollama create zako-tease -f Modelfiles/Modelfile.1.5b
 
 # === 0.5B Model (Ultra-lightweight / Low RAM) ===
 ollama pull qwen2.5:0.5b
-ollama create zako-tease:0.5b -f Modelfile.0.5b
+ollama create zako-tease:0.5b -f Modelfiles/Modelfile.0.5b
 ```
 
 #### 2. Verify or Launch the Daemon:

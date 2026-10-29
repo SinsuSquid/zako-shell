@@ -144,8 +144,14 @@ status_daemon() {
                     echo "Model '$OLLAMA_MODEL': Ready ♡"
                 else
                     echo "Model '$OLLAMA_MODEL': Not found in 'ollama list'."
-                    if [ -f "$SCRIPT_DIR/Modelfile" ]; then
-                        echo "  -> Run 'ollama create $OLLAMA_MODEL -f $SCRIPT_DIR/Modelfile' to create it."
+                    local modelfile_path="$SCRIPT_DIR/Modelfiles/Modelfile.1.5b"
+                    if [[ "$OLLAMA_MODEL" == *"0.5b"* ]]; then
+                        modelfile_path="$SCRIPT_DIR/Modelfiles/Modelfile.0.5b"
+                    elif [ ! -f "$modelfile_path" ] && [ -f "$SCRIPT_DIR/Modelfiles/Modelfile" ]; then
+                        modelfile_path="$SCRIPT_DIR/Modelfiles/Modelfile"
+                    fi
+                    if [ -f "$modelfile_path" ]; then
+                        echo "  -> Run 'ollama create $OLLAMA_MODEL -f $modelfile_path' to create it."
                     fi
                 fi
             fi

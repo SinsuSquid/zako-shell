@@ -52,7 +52,7 @@ git: 'psh' is not a git command. See 'git --help'.
 - **[`Ollama`](https://ollama.com)** (Default, recommended): `ollama` installed and running on your system (`ollama serve`).
 - **[`llama.cpp`](https://github.com/ggerganov/llama.cpp)** (Alternative): `llama-server` running on port 8080.
 - **`curl` & `jq`**: For querying the local daemon and formatting payloads.
-- *Any shell!* (Bash, Zsh, Fish — works natively with or without prompt themes like Starship, Oh-My-Zsh, etc.)
+- *Any shell!* (Pure Bash, Zsh, Fish — works natively with standard shell hooks)
 
 ---
 
@@ -144,26 +144,10 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 
 ## 🐚 Shell Hook Integration
 
-No complicated prompt theme configuration required! Hook it natively into your favorite shell:
+Zero external prompt theme dependencies! Pure native shell integration for your favorite shell:
 
 ### 1. **Bash**
 Add to your `~/.bashrc`:
-
-**If you use Starship**:
-```bash
-_ZAKO_RAN=0
-PS0='${_ZAKO_RAN:(_ZAKO_RAN=1,0):0}'"${PS0-}"
-zako_hook() {
-    local code=$STARSHIP_CMD_STATUS
-    if [ "${_ZAKO_RAN:-0}" -eq 1 ] && [ "$code" -ne 0 ]; then
-        ~/.local/bin/zako.sh "$code" "$(HISTTIMEFORMAT= history 1 2>/dev/null | sed 's/^[ ]*[0-9]*[ ]*//')"
-    fi
-    _ZAKO_RAN=0
-}
-starship_precmd_user_func="zako_hook"
-```
-
-**If you do NOT use Starship**:
 ```bash
 _ZAKO_RAN=0
 PS0='${_ZAKO_RAN:(_ZAKO_RAN=1,0):0}'"${PS0-}"

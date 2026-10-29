@@ -1,11 +1,10 @@
 [Unit]
-Description=Zako Hostile Ergonomics Daemon (llama.cpp)
+Description=Zako Hostile Ergonomics Daemon (Ollama)
 After=network.target
 
 [Service]
 Type=exec
-Environment="LD_LIBRARY_PATH=%h/.local/lib64"
-ExecStart=%h/.local/bin/llama-server -m %h/Projects/zako-shell/models/qwen2.5-1.5b-instruct-q4_k_m.gguf --host 127.0.0.1 --port 8080 -ngl 0 -t 4 -c 512 -lv 0
+ExecStart=/usr/local/bin/ollama serve
 Restart=on-failure
 RestartSec=3
 

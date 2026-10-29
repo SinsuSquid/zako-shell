@@ -24,8 +24,11 @@ if [ -z "$FAILED_CMD" ]; then
     FAILED_CMD="command (exit status ${EXIT_CODE})"
 fi
 
-# Local llama-server endpoint
-LLAMA_ENDPOINT="http://127.0.0.1:8080/v1/chat/completions"
+# Backend endpoint & model configuration
+# Default backend: Ollama (port 11434)
+ZAKO_ENDPOINT="${ZAKO_ENDPOINT:-${OLLAMA_ENDPOINT:-${LLAMA_ENDPOINT:-http://127.0.0.1:11434/v1/chat/completions}}}"
+ZAKO_MODEL="${ZAKO_MODEL:-${OLLAMA_MODEL:-zako-tease}}"
+ZAKO_TIMEOUT="${ZAKO_TIMEOUT:-3.5}"
 
 # Multi-turn few-shot prompt for maximum compliance and personality
 SYSTEM_PROMPT="This is a comedic anime dialogue. Mesugaki teases Zako with strictly ONE OR TWO short sentence ending in ~♡. Never write a second sentence."
@@ -34,9 +37,11 @@ USER_PROMPT="Zako mistyped: ${FAILED_CMD}"
 
 # Build JSON payload safely with jq
 PAYLOAD=$(jq -n \
+  --arg model "$ZAKO_MODEL" \
   --arg sys "$SYSTEM_PROMPT" \
   --arg usr "$USER_PROMPT" \
   '{
+    model: $model,
     messages: [
       {role: "system", content: $sys},
       {role: "user", content: "Zako mistyped: git psh"},
@@ -51,7 +56,7 @@ PAYLOAD=$(jq -n \
   }')
 
 # Request inference with a hard timeout to prevent blocking the shell prompt
-RESPONSE=$(curl -s --max-time 2.5 -X POST "$LLAMA_ENDPOINT" \
+RESPONSE=$(curl -s --max-time "$ZAKO_TIMEOUT" -X POST "$ZAKO_ENDPOINT" \
   -H "Content-Type: application/json" \
   -d "$PAYLOAD" 2>/dev/null | jq -r '.choices[0].message.content' 2>/dev/null)
 

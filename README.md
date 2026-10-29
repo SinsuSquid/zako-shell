@@ -18,7 +18,7 @@
   と＿)_)
 ```
 
-**An offline, zero-latency Hostile Ergonomics shell hook powered by `llama.cpp`**  
+**An offline, zero-latency Hostile Ergonomics shell hook powered by `Ollama`**  
 *Because why should GitHub Copilot politely fix your typos when a bratty local sLLM can bully you for them instead?*
 
 ---
@@ -49,7 +49,8 @@ git: 'psh' is not a git command. See 'git --help'.
 
 ## 🛠️ Prerequisites
 
-- **[`llama.cpp`](https://github.com/ggerganov/llama.cpp)**: Specifically `llama-server` installed on your `$PATH` or in `~/.local/bin/llama-server`.
+- **[`Ollama`](https://ollama.com)** (Default): `ollama` installed and running on your system (`ollama serve`).
+- *(Optional legacy backend)*: **[`llama.cpp`](https://github.com/ggerganov/llama.cpp)** (`llama-server`) is still supported via `ZAKO_BACKEND=llama.cpp`.
 - **`curl` & `jq`**: For querying the local daemon and formatting payloads.
 - *Any shell!* (Bash, Zsh, Fish — works natively with or without prompt themes like Starship, Oh-My-Zsh, etc.)
 
@@ -57,25 +58,28 @@ git: 'psh' is not a git command. See 'git --help'.
 
 ## 🚀 Quick Start (Summoning the Daemon)
 
-### 1. Download Model (CPU-friendly)
-Download `Qwen2.5-1.5B-Instruct-Q4_K_M.gguf` (~1.1 GB, default) into `models/`:
+### 1. Setup Model via Ollama (Recommended & Default)
+Pull the base model (default: `qwen2.5:1.5b`) and build the `zako-tease` model with built-in Mesugaki personality:
 ```bash
-mkdir -p models
-curl -L -o models/qwen2.5-1.5b-instruct-q4_k_m.gguf \
-  "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf"
+# Pull base model
+ollama pull qwen2.5:1.5b
+
+# Create the dedicated Zako model
+ollama create zako-tease -f Modelfile
 ```
-*(Optional: For low-RAM machines, the 0.5B model `qwen2.5-0.5b-instruct-q4_k_m.gguf` is also supported as an automatic fallback).*
+*(Tip: You can also use `qwen2.5:1.5b` directly without creating a custom model by setting `export ZAKO_MODEL="qwen2.5:1.5b"`!)*
 
-### 2. Launch the Local Daemon
-Run in background via helper script:
+### 2. Verify or Launch the Local Daemon
+If Ollama is already running on your machine, you're good to go! You can verify status or start the daemon with:
 ```bash
-./zako-daemon.sh start
-
 # Verify status:
 ./zako-daemon.sh status
+
+# Start daemon if not running:
+./zako-daemon.sh start
 ```
 
-*(Optional)* Or install as a persistent systemd user service:
+*(Optional)* Install as a persistent systemd user service:
 ```bash
 mkdir -p ~/.config/systemd/user
 cp zako-daemon.service ~/.config/systemd/user/
@@ -92,6 +96,19 @@ ln -sf "$(pwd)/zako.sh" ~/.local/bin/zako.sh
 # Run a test roast manually:
 zako.sh 1 "git psh"
 ```
+
+---
+
+## ⚙️ Configuration
+
+Tune your abuse parameters using environment variables in your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
+
+| Variable | Default | Description |
+|---|---|---|
+| `ZAKO_MODEL` | `zako-tease` | The Ollama model name to tease you with |
+| `ZAKO_ENDPOINT` | `http://127.0.0.1:11434/v1/chat/completions` | Local inference API endpoint |
+| `ZAKO_TIMEOUT` | `3.5` | Max seconds before giving up (prevents prompt lags) |
+| `ZAKO_BACKEND` | `ollama` | Backend engine (`ollama` or `llama.cpp`) |
 
 ---
 

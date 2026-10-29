@@ -11,19 +11,12 @@
 </p>
 </div>
 
-```
-  ∧＿∧
-（ ´・ω・)   "Why fix your bugs when a 1.5B model
- ( つ旦O        can call you a failure instead~♡?"
-  と＿)_)
-```
+![Haaaaaaah?](zako-preview.gif)
 
 **An offline, zero-latency Hostile Ergonomics shell hook powered by `Ollama` & `llama.cpp`**  
 *Because why should GitHub Copilot politely fix your typos when a bratty local sLLM can bully you for them instead?*
 
 ---
-
-</div>
 
 ## 🙄 "What is this trash, Zako?"
 

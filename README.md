@@ -18,7 +18,7 @@
   と＿)_)
 ```
 
-**An offline, zero-latency Hostile Ergonomics shell hook powered by `Ollama`**  
+**An offline, zero-latency Hostile Ergonomics shell hook powered by `Ollama` & `llama.cpp`**  
 *Because why should GitHub Copilot politely fix your typos when a bratty local sLLM can bully you for them instead?*
 
 ---
@@ -38,19 +38,19 @@ Every time you screw up a command (`exit code != 0`), **`zako-shell`** catches y
 ❯ git psh
 git: 'psh' is not a git command. See 'git --help'.
 
-🐟 : Forgot how to spell 'push' already? Did your two remaining brain cells take a nap, Zako~♡?
+🐟 : Did you forget how to spell 'push' already? Your keyboard deserves a better owner, Zako~♡.
 ❯ _
 ```
 
 > **Warning for Snowflake Zakos**:
-> This tool does NOT give helpful suggestions. It does NOT offer auto-fixes. It exists solely to induce psychological damage until your typing accuracy improves out of pure spite.
+> This tool does NOT give helpful suggestions. It does NOT offer auto-fixes. It exists solely to induce psychological damage until your typing accuracy improves out of pure spite. Read [ON_MESUGAKI.md](ON_MESUGAKI.md) for the foundational philosophy.
 
 ---
 
 ## 🛠️ Prerequisites
 
-- **[`Ollama`](https://ollama.com)** (Default): `ollama` installed and running on your system (`ollama serve`).
-- *(Optional legacy backend)*: **[`llama.cpp`](https://github.com/ggerganov/llama.cpp)** (`llama-server`) is still supported via `ZAKO_BACKEND=llama.cpp`.
+- **[`Ollama`](https://ollama.com)** (Default, recommended): `ollama` installed and running on your system (`ollama serve`).
+- **[`llama.cpp`](https://github.com/ggerganov/llama.cpp)** (Alternative): `llama-server` running on port 8080.
 - **`curl` & `jq`**: For querying the local daemon and formatting payloads.
 - *Any shell!* (Bash, Zsh, Fish — works natively with or without prompt themes like Starship, Oh-My-Zsh, etc.)
 
@@ -58,19 +58,22 @@ git: 'psh' is not a git command. See 'git --help'.
 
 ## 🚀 Quick Start (Summoning the Daemon)
 
-### 1. Setup Model via Ollama (Recommended & Default)
-Pull the base model (default: `qwen2.5:1.5b`) and build the `zako-tease` model with built-in Mesugaki personality:
+### Option A: Using Ollama (Recommended)
+
+Both **1.5B** (rich contextual wit) and **0.5B** (ultra-low VRAM & zero latency) models are supported with dedicated, cognitively tailored persona scripts:
+
+#### 1. Build the Models:
 ```bash
-# Pull base model
+# === 1.5B Model (Recommended default) ===
 ollama pull qwen2.5:1.5b
-
-# Create the dedicated Zako model
 ollama create zako-tease -f Modelfile
-```
-*(Tip: You can also use `qwen2.5:1.5b` directly without creating a custom model by setting `export ZAKO_MODEL="qwen2.5:1.5b"`!)*
 
-### 2. Verify or Launch the Local Daemon
-If Ollama is already running on your machine, you're good to go! You can verify status or start the daemon with:
+# === 0.5B Model (Ultra-lightweight / Low RAM) ===
+ollama pull qwen2.5:0.5b
+ollama create zako-tease:0.5b -f Modelfile.0.5b
+```
+
+#### 2. Verify or Launch the Daemon:
 ```bash
 # Verify status:
 ./zako-daemon.sh status
@@ -79,15 +82,41 @@ If Ollama is already running on your machine, you're good to go! You can verify 
 ./zako-daemon.sh start
 ```
 
-*(Optional)* Install as a persistent systemd user service:
-```bash
-mkdir -p ~/.config/systemd/user
-cp zako-daemon.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable --now zako-daemon
-```
+---
+
+### Option B: Using `llama.cpp` (`llama-server`)
+
+If you prefer raw `llama.cpp`:
+
+1. Download the GGUF model into `models/`:
+   ```bash
+   mkdir -p models
+   # 1.5B model:
+   curl -L -o models/qwen2.5-1.5b-instruct-q4_k_m.gguf \
+     "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf"
+   # or 0.5B model:
+   curl -L -o models/qwen2.5-0.5b-instruct-q4_k_m.gguf \
+     "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+   ```
+
+2. Start `llama-server` via helper:
+   ```bash
+   BACKEND=llama.cpp ./zako-daemon.sh start
+   ```
+
+3. Configure shell environment:
+   ```bash
+   export ZAKO_ENDPOINT="http://127.0.0.1:8080/v1/chat/completions"
+   # Set to 0.5b if using the 0.5B model:
+   # export ZAKO_MODEL_SIZE="0.5b"
+   ```
+
+`zako.sh` automatically adapts its system prompt and few-shot calibration to match either 1.5B or 0.5B!
+
+---
 
 ### 3. Install the Hook Binary
+
 Symlink `zako.sh` into your `$PATH`:
 ```bash
 mkdir -p ~/.local/bin
@@ -105,7 +134,8 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 
 | Variable | Default | Description |
 |---|---|---|
-| `ZAKO_MODEL` | `zako-tease` | The Ollama model name to tease you with |
+| `ZAKO_MODEL` | `zako-tease` | The model name (e.g. `zako-tease`, `zako-tease:0.5b`, `qwen2.5:1.5b`) |
+| `ZAKO_MODEL_SIZE` | Auto (`1.5b` or `0.5b`) | Selects persona script (`1.5b` or `0.5b`) |
 | `ZAKO_ENDPOINT` | `http://127.0.0.1:11434/v1/chat/completions` | Local inference API endpoint |
 | `ZAKO_TIMEOUT` | `3.5` | Max seconds before giving up (prevents prompt lags) |
 | `ZAKO_BACKEND` | `ollama` | Backend engine (`ollama` or `llama.cpp`) |

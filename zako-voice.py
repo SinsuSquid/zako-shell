@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 """
-zako-voice.py - Audio speech synthesis for zako-shell powered by Kokoro-ONNX.
+zako-voice.py - Audio speech synthesis for zako-shell powered by sherpa-onnx (VITS GLaDOS).
 Enforces audible Hostile Ergonomics whenever Zako triggers exit code != 0.
 """
 
 import os
 import sys
 import re
+import tempfile
+import subprocess
+import numpy as np
+import soundfile as sf
 
 # Resolve directories relative to this script
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_DIR = os.path.join(SCRIPT_DIR, "voices")
-DEFAULT_MODEL_PATH = os.path.join(MODEL_DIR, "kokoro-v1.0.onnx")
-DEFAULT_VOICES_PATH = os.path.join(MODEL_DIR, "voices-v1.0.bin")
+MODEL_DIR = os.path.join(SCRIPT_DIR, "voices", "vits-piper-en_US-glados")
 
-MODEL_PATH = os.environ.get("ZAKO_VOICE_MODEL", DEFAULT_MODEL_PATH)
-VOICES_PATH = os.environ.get("ZAKO_VOICE_BIN", DEFAULT_VOICES_PATH)
-VOICE_NAME = os.environ.get("ZAKO_VOICE_SPEAKER", "af_bella")
-VOICE_SPEED = float(os.environ.get("ZAKO_VOICE_SPEED", "1.1"))
+MODEL_PATH = os.environ.get("ZAKO_VOICE_MODEL", os.path.join(MODEL_DIR, "en_US-glados.onnx"))
+TOKENS_PATH = os.environ.get("ZAKO_VOICE_TOKENS", os.path.join(MODEL_DIR, "tokens.txt"))
+DATA_DIR = os.environ.get("ZAKO_VOICE_DATA", os.path.join(MODEL_DIR, "espeak-ng-data"))
+VOICE_SPEED = float(os.environ.get("ZAKO_VOICE_SPEED", "1.0"))
 
 
 def clean_text_for_speech(text: str) -> str:
@@ -42,7 +44,7 @@ def clean_text_for_speech(text: str) -> str:
     clean = re.sub(r"(?i)\b([a-zA-Z])\1{2,}\b", r"\1\1", clean)
 
     # 4. Cleanse 'Zako~♡' and all '~♡' variants
-    # Cleanly preserve the intended punctuation (!, ?, .) without speaking 'tilde' or 'heart'
+    # Cleanly preserve intended punctuation (!, ?, .) without speaking 'tilde' or 'heart'
     clean = re.sub(r"~\s*[♡♥❤💕]+\s*([?!.]*)", r"\1", clean)
     clean = re.sub(r"~\s*([?!.]*)", r"\1", clean)
     clean = re.sub(r"[~♡♥❤💕]", "", clean)
@@ -65,10 +67,6 @@ def clean_text_for_speech(text: str) -> str:
 
 def play_audio(samples, sample_rate):
     """Play audio via PipeWire/PulseAudio (pw-play/paplay) or sounddevice."""
-    import tempfile
-    import subprocess
-    import soundfile as sf
-
     # Prefer pw-play / paplay on Linux to route directly to active PipeWire/Bluetooth sink
     for player in ["pw-play", "paplay"]:
         if subprocess.call(["which", player], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0:
@@ -100,17 +98,29 @@ def main():
     if not text:
         return
 
-    if not os.path.isfile(MODEL_PATH) or not os.path.isfile(VOICES_PATH):
-        # Gracefully exit if model files are not yet downloaded
+    if not os.path.isfile(MODEL_PATH) or not os.path.isfile(TOKENS_PATH):
         return
 
     try:
-        from kokoro_onnx import Kokoro
-        kokoro = Kokoro(MODEL_PATH, VOICES_PATH)
-        samples, sample_rate = kokoro.create(text, voice=VOICE_NAME, speed=VOICE_SPEED, lang="en-us")
-        play_audio(samples, sample_rate)
-    except Exception as e:
-        # In hostile ergonomics, audio errors fail silently to never block the terminal prompt
+        import sherpa_onnx
+        config = sherpa_onnx.OfflineTtsConfig(
+            model=sherpa_onnx.OfflineTtsModelConfig(
+                vits=sherpa_onnx.OfflineTtsVitsModelConfig(
+                    model=MODEL_PATH,
+                    lexicon="",
+                    tokens=TOKENS_PATH,
+                    data_dir=DATA_DIR,
+                ),
+                provider="cpu",
+                num_threads=2,
+            ),
+        )
+        tts = sherpa_onnx.OfflineTts(config)
+        audio = tts.generate(text, sid=0, speed=VOICE_SPEED)
+        if audio and len(audio.samples) > 0:
+            samples = np.array(audio.samples, dtype=np.float32)
+            play_audio(samples, audio.sample_rate)
+    except Exception:
         pass
 
 

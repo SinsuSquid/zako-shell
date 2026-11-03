@@ -93,17 +93,27 @@ def play_audio(samples, sample_rate):
         pass
 
 
+def split_into_chunks(text: str) -> list[str]:
+    """Split text into sentence/prosody chunks for lower latency and distinct intonation."""
+    # Split on sentence boundaries (. ! ?) while keeping punctuation attached
+    raw_chunks = re.split(r"(?<=[.!?])\s+", text)
+    chunks = [c.strip() for c in raw_chunks if c.strip()]
+    return chunks if chunks else [text]
+
+
 def main():
-    if len(sys.argv) < 2 or not sys.argv[1].strip():
+    raw_text = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else sys.stdin.read()
+    if not raw_text.strip():
         return
 
-    raw_text = sys.argv[1]
     text = clean_text_for_speech(raw_text)
     if not text:
         return
 
     if not os.path.isfile(MODEL_PATH) or not os.path.isfile(TOKENS_PATH):
         return
+
+    chunks = split_into_chunks(text)
 
     try:
         import sherpa_onnx
@@ -120,10 +130,11 @@ def main():
             ),
         )
         tts = sherpa_onnx.OfflineTts(config)
-        audio = tts.generate(text, sid=0, speed=VOICE_SPEED)
-        if audio and len(audio.samples) > 0:
-            samples = np.array(audio.samples, dtype=np.float32)
-            play_audio(samples, audio.sample_rate)
+        for chunk in chunks:
+            audio = tts.generate(chunk, sid=0, speed=VOICE_SPEED)
+            if audio and len(audio.samples) > 0:
+                samples = np.array(audio.samples, dtype=np.float32)
+                play_audio(samples, audio.sample_rate)
     except Exception:
         pass
 

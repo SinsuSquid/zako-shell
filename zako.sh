@@ -175,9 +175,14 @@ RESPONSE=$(curl -s --max-time "$ZAKO_TIMEOUT" -X POST "$ZAKO_ENDPOINT" \
   -H "Content-Type: application/json" \
   -d "$PAYLOAD" 2>/dev/null | jq -r '.choices[0].message.content' 2>/dev/null)
 
-# Enforce strictly ONE sentence: trim after ~♡ or first terminal punctuation
+# Enforce strictly 1-2 punchy sentences ending in ~♡ or terminal punctuation
 if [ -n "$RESPONSE" ] && [ "$RESPONSE" != "null" ]; then
-    RESPONSE=$(echo "$RESPONSE" | sed -E 's/(~♡[?!.]*|[\.!?]).*/\1/' | head -n 1 | tr -d '\n\r')
+    if [[ "$RESPONSE" == *"~♡"* ]]; then
+        RESPONSE=$(echo "$RESPONSE" | sed -E 's/(~♡[?!.]*).*/\1/' | head -n 1 | tr -d '\n\r')
+    else
+        CLEANED_RESP=$(echo "$RESPONSE" | grep -oE '^([^.!?]+[.!?]){1,2}' 2>/dev/null | head -n 1 | tr -d '\n\r')
+        RESPONSE="${CLEANED_RESP:-$RESPONSE}"
+    fi
     printf "\033[1;35m🐟 : %s\033[0m\n" "$RESPONSE"
 
     # Audible Hostile Ergonomics: async voice synthesis

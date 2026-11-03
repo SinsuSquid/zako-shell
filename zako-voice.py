@@ -49,10 +49,14 @@ def clean_text_for_speech(text: str) -> str:
     clean = re.sub(r"~\s*([?!.]*)", r"\1", clean)
     clean = re.sub(r"[~♡♥❤💕]", "", clean)
 
-    # 5. Strip single/double/backtick quotes around command names so TTS doesn't say 'quote'
+    # 5. Phonetic pacing hijacks:
+    # 'Zako' -> 'Zacco' (sharp, fast, clipped 'a' instead of sluggish elongated 'aa')
+    clean = re.sub(r"(?i)\bzako\b", "Zacco", clean)
+
+    # 6. Strip single/double/backtick quotes around command names so TTS doesn't say 'quote'
     clean = re.sub(r"['\"`](\w+)['\"`]", r"\1", clean)
 
-    # 6. Fix double or awkward punctuation
+    # 7. Fix double or awkward punctuation
     clean = re.sub(r"\s+([,.?!])", r"\1", clean)
     clean = re.sub(r"\.{2,}", ".", clean)
     clean = re.sub(r"\?+", "?", clean)

@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 # zako.sh - The Hostile Ergonomics Terminal Hook
 
+# Resolve canonical script directory even if invoked through symlink (e.g. ~/.local/bin/zako.sh)
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+    DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+
 # Robust argument parsing: supports ($EXIT_CODE, $FAILED_CMD), ($FAILED_CMD, $EXIT_CODE), or single argument
 if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
     EXIT_CODE="$1"
@@ -42,6 +51,7 @@ fi
 ZAKO_ENDPOINT="${ZAKO_ENDPOINT:-${OLLAMA_ENDPOINT:-${LLAMA_ENDPOINT:-http://127.0.0.1:11434/v1/chat/completions}}}"
 ZAKO_MODEL="${ZAKO_MODEL:-${OLLAMA_MODEL:-zako-tease}}"
 ZAKO_TIMEOUT="${ZAKO_TIMEOUT:-3.5}"
+ZAKO_VOICE="${ZAKO_VOICE:-0}" # Set to 1 to enable audible voice mockery
 
 # Determine model scale (0.5b vs 1.5b vs 3b)
 # Auto-detected if model name/path contains '0.5b' or '3b', or overridden by ZAKO_MODEL_SIZE
@@ -169,4 +179,13 @@ RESPONSE=$(curl -s --max-time "$ZAKO_TIMEOUT" -X POST "$ZAKO_ENDPOINT" \
 if [ -n "$RESPONSE" ] && [ "$RESPONSE" != "null" ]; then
     RESPONSE=$(echo "$RESPONSE" | sed -E 's/(~♡[?!.]*|[\.!?]).*/\1/' | head -n 1 | tr -d '\n\r')
     printf "\033[1;35m🐟 : %s\033[0m\n" "$RESPONSE"
+
+    # Audible Hostile Ergonomics: async voice synthesis
+    if [ "$ZAKO_VOICE" = "1" ] || [ "$ZAKO_VOICE" = "true" ]; then
+        VOICE_PY="$SCRIPT_DIR/zako-voice.py"
+        VOICE_PYTHON="${ZAKO_PYTHON:-$SCRIPT_DIR/.venv/bin/python}"
+        if [ -x "$VOICE_PYTHON" ] && [ -f "$VOICE_PY" ]; then
+            ( "$VOICE_PYTHON" "$VOICE_PY" "$RESPONSE" >/dev/null 2>&1 & )
+        fi
+    fi
 fi

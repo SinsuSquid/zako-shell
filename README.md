@@ -139,6 +139,36 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 | `ZAKO_ENDPOINT` | `http://127.0.0.1:11434/v1/chat/completions` | Local inference API endpoint |
 | `ZAKO_TIMEOUT` | `3.5` | Max seconds before giving up (prevents prompt lags) |
 | `ZAKO_BACKEND` | `ollama` | Backend engine (`ollama` or `llama.cpp`) |
+| `ZAKO_VOICE` | `0` | Enable audible Hostile Ergonomics (`1` = enabled) |
+| `ZAKO_VOICE_SPEAKER` | `af_bella` | Kokoro voice persona (`af_bella`, `af_sarah`, `af_heart`, etc.) |
+| `ZAKO_VOICE_SPEED` | `1.1` | Speech playback rate multiplier |
+
+---
+
+## 🎙️ Audible Hostile Ergonomics (Kokoro-ONNX TTS)
+
+Want Mesugaki to actually **verbally roast and giggle at you through your speakers** every time you fail a command? 📢♡
+
+Powered by **`Kokoro-ONNX`** (pure ONNX Runtime, zero PyTorch/legacy baggage, ultra-fast async execution without blocking your terminal prompt):
+
+### 1. Setup Voice Environment:
+```bash
+# Setup lightweight venv
+uv venv --python 3.12 .venv
+uv pip install --python .venv kokoro-onnx sounddevice soundfile onnxruntime
+
+# Download Kokoro ONNX model and voices catalog (~340MB)
+mkdir -p voices
+curl -L -o voices/kokoro-v1.0.onnx "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
+curl -L -o voices/voices-v1.0.bin "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
+```
+
+### 2. Enable in Shell:
+Add to your shell profile (`~/.bashrc`, `~/.zshrc`):
+```bash
+export ZAKO_VOICE=1
+```
+Now every mistyped command plays the dynamic roast in the background while your cursor returns immediately! 🚀✨
 
 ---
 

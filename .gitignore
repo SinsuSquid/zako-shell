@@ -1,3 +1,9 @@
 models/*.gguf
 *.pid
 *.log
+.venv/
+voices/*.onnx
+voices/*.bin
+voices/*.json
+voices/*.wav
+

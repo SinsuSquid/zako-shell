@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 # zako-daemon.sh - Management script for the local daemon (Ollama default, llama.cpp optional)
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve canonical script directory even if invoked through symlink
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+    DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
 
 # Backend selection: 'ollama' (default) or 'llama.cpp' / 'llama'
 BACKEND="${ZAKO_BACKEND:-${BACKEND:-ollama}}"

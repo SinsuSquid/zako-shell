@@ -53,10 +53,14 @@ git: 'psh' is not a git command. See 'git --help'.
 
 ### Option A: Using Ollama (Recommended)
 
-Both **1.5B** (rich contextual wit) and **0.5B** (ultra-low VRAM & zero latency) models are supported with dedicated, cognitively tailored persona scripts:
+**3B** (high wit & devastating nuance), **1.5B** (rich contextual wit), and **0.5B** (ultra-low VRAM & zero latency) models are supported with dedicated, cognitively tailored persona scripts:
 
 #### 1. Build the Models:
 ```bash
+# === 3B Model (High Wit & Devastating Nuance) ===
+ollama pull qwen2.5:3b
+ollama create zako-tease:3b -f Modelfiles/Modelfile.3b
+
 # === 1.5B Model (Recommended default) ===
 ollama pull qwen2.5:1.5b
 ollama create zako-tease -f Modelfiles/Modelfile.1.5b
@@ -84,7 +88,10 @@ If you prefer raw `llama.cpp`:
 1. Download the GGUF model into `models/`:
    ```bash
    mkdir -p models
-   # 1.5B model:
+   # 3B model:
+   curl -L -o models/qwen2.5-3b-instruct-q4_k_m.gguf \
+     "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf"
+   # or 1.5B model:
    curl -L -o models/qwen2.5-1.5b-instruct-q4_k_m.gguf \
      "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf"
    # or 0.5B model:
@@ -127,8 +134,8 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 
 | Variable | Default | Description |
 |---|---|---|
-| `ZAKO_MODEL` | `zako-tease` | The model name (e.g. `zako-tease`, `zako-tease:0.5b`, `qwen2.5:1.5b`) |
-| `ZAKO_MODEL_SIZE` | Auto (`1.5b` or `0.5b`) | Selects persona script (`1.5b` or `0.5b`) |
+| `ZAKO_MODEL` | `zako-tease` | The model name (e.g. `zako-tease`, `zako-tease:3b`, `zako-tease:0.5b`, `qwen2.5:3b`) |
+| `ZAKO_MODEL_SIZE` | Auto (`3b`, `1.5b`, or `0.5b`) | Selects persona script (`3b`, `1.5b`, or `0.5b`) |
 | `ZAKO_ENDPOINT` | `http://127.0.0.1:11434/v1/chat/completions` | Local inference API endpoint |
 | `ZAKO_TIMEOUT` | `3.5` | Max seconds before giving up (prevents prompt lags) |
 | `ZAKO_BACKEND` | `ollama` | Backend engine (`ollama` or `llama.cpp`) |

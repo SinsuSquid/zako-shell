@@ -14,7 +14,9 @@ OLLAMA_MODEL="${ZAKO_MODEL:-${OLLAMA_MODEL:-zako-tease}}"
 
 # llama.cpp fallback settings
 if [ -z "$MODEL_PATH" ]; then
-    if [ -f "$SCRIPT_DIR/models/qwen2.5-1.5b-instruct-q4_k_m.gguf" ]; then
+    if [ -f "$SCRIPT_DIR/models/qwen2.5-3b-instruct-q4_k_m.gguf" ]; then
+        MODEL_PATH="$SCRIPT_DIR/models/qwen2.5-3b-instruct-q4_k_m.gguf"
+    elif [ -f "$SCRIPT_DIR/models/qwen2.5-1.5b-instruct-q4_k_m.gguf" ]; then
         MODEL_PATH="$SCRIPT_DIR/models/qwen2.5-1.5b-instruct-q4_k_m.gguf"
     else
         MODEL_PATH="$SCRIPT_DIR/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"

@@ -6,4 +6,7 @@ voices/*.onnx
 voices/*.bin
 voices/*.json
 voices/*.wav
+__pycache__/
+*.py[cod]
+
 

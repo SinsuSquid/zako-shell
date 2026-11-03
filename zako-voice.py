@@ -21,16 +21,45 @@ VOICE_SPEED = float(os.environ.get("ZAKO_VOICE_SPEED", "1.1"))
 
 
 def clean_text_for_speech(text: str) -> str:
-    """Strip ANSI escape codes and clean characters that phoneticize awkwardly."""
-    # Strip terminal ANSI color codes
+    """
+    Hijack and sanitize LLM raw output for optimal TTS phonetics.
+    Replaces awkward written anime tropes (e.g., 'Haaah?', 'Zako~♡') with
+    crisp, natural phonetics.
+    """
+    if not text:
+        return ""
+
+    # 1. Strip terminal ANSI color codes and shell formatting
     ansi_regex = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
     clean = ansi_regex.sub("", text)
-    # Strip daemon prefix if present
     clean = re.sub(r"^🐟\s*:\s*", "", clean)
-    # Tilde / heart formatting for smoother vocal landing
-    clean = clean.replace("~♡", "...").replace("♡", "")
-    # General cleanup
+
+    # 2. Specific word / trope hijacks for audio:
+    # 'Haaah?', 'Haaaaaah!', 'Haaah' -> 'Hah?' / 'Hah!'
+    clean = re.sub(r"(?i)\bh+a{2,}h*([?!]*)", r"Hah\1", clean)
+
+    # 3. Normalize elongated vowel/consonant screams ('Awwwww', 'Nooooo')
+    clean = re.sub(r"(?i)\b([a-zA-Z])\1{2,}\b", r"\1\1", clean)
+
+    # 4. Cleanse 'Zako~♡' and all '~♡' variants
+    # Cleanly preserve the intended punctuation (!, ?, .) without speaking 'tilde' or 'heart'
+    clean = re.sub(r"~\s*[♡♥❤💕]+\s*([?!.]*)", r"\1", clean)
+    clean = re.sub(r"~\s*([?!.]*)", r"\1", clean)
+    clean = re.sub(r"[~♡♥❤💕]", "", clean)
+
+    # 5. Strip single/double/backtick quotes around command names so TTS doesn't say 'quote'
+    clean = re.sub(r"['\"`](\w+)['\"`]", r"\1", clean)
+
+    # 6. Fix double or awkward punctuation
+    clean = re.sub(r"\s+([,.?!])", r"\1", clean)
+    clean = re.sub(r"\.{2,}", ".", clean)
+    clean = re.sub(r"\?+", "?", clean)
+    clean = re.sub(r"!+", "!", clean)
+
     clean = clean.strip()
+    if clean and clean[-1] not in ".!?":
+        clean += "."
+
     return clean
 
 

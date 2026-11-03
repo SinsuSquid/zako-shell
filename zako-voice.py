@@ -40,8 +40,8 @@ def clean_text_for_speech(text: str) -> str:
     # 'Haaah?', 'Haaaaaah!', 'Haaah' -> 'Hah?' / 'Hah!'
     clean = re.sub(r"(?i)\bh+a{2,}h*([?!]*)", r"Hah\1", clean)
 
-    # 3. Normalize elongated vowel/consonant screams ('Awwwww', 'Nooooo')
-    clean = re.sub(r"(?i)\b([a-zA-Z])\1{2,}\b", r"\1\1", clean)
+    # 3. Normalize elongated vowel/consonant screams ('Awwwww' -> 'Aww', 'Nooooo' -> 'Noo')
+    clean = re.sub(r"([a-zA-Z])\1{2,}", r"\1\1", clean)
 
     # 4. Cleanse 'Zako~♡' and all '~♡' variants
     # Cleanly preserve intended punctuation (!, ?, .) without speaking 'tilde' or 'heart'

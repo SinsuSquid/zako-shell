@@ -115,7 +115,7 @@ If you prefer raw `llama.cpp`:
    # export ZAKO_MODEL_SIZE="0.5b"
    ```
 
-`zako.sh` automatically adapts its system prompt and few-shot calibration to match either 1.5B or 0.5B!
+`zako.sh` automatically adapts its system prompt and few-shot calibration to match 3B, 1.5B, or 0.5B!
 
 ---
 
@@ -181,11 +181,11 @@ To eliminate model cold-start delays, manage the voice daemon via `zako-daemon.s
 # Start GLaDOS voice daemon:
 ./zako-daemon.sh voice-start
 
-# Or start with Hatsune Miku RVC (pitch +7, default gold-standard RMVPE):
+# Or start with Hatsune Miku RVC (pitch +7, lightweight pm default):
 ./zako-daemon.sh voice-start --rvc
 
-# Switch pitch extraction algorithm (rmvpe, pm, or harvest):
-./zako-daemon.sh voice-restart --rvc --method=rmvpe
+# Customize pitch and extraction algorithm (pm, rmvpe, or harvest):
+./zako-daemon.sh voice-restart --rvc --pitch=7 --method=pm
 
 # Check unified daemon status:
 ./zako-daemon.sh status

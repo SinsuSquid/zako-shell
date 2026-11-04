@@ -146,6 +146,7 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 | `ZAKO_VOICE` | `0` | Enable audible Hostile Ergonomics (`1` = enabled) |
 | `ZAKO_VOICE_SPEED` | `1.0` | Speech playback rate multiplier |
 | `ZAKO_RVC` | `0` | Enable RVC voice conversion (Miku, pitch +7) |
+| `ZAKO_RVC_METHOD` | `rmvpe` | Pitch extraction algorithm (`rmvpe`, `pm`, or `harvest`) |
 
 ---
 
@@ -179,8 +180,11 @@ To eliminate model cold-start delays, manage the voice daemon via `zako-daemon.s
 # Start GLaDOS voice daemon:
 ./zako-daemon.sh voice-start
 
-# Or start with Hatsune Miku RVC (pitch +7):
+# Or start with Hatsune Miku RVC (pitch +7, default gold-standard RMVPE):
 ./zako-daemon.sh voice-start --rvc
+
+# Switch pitch extraction algorithm (rmvpe, pm, or harvest):
+./zako-daemon.sh voice-restart --rvc --method=rmvpe
 
 # Check unified daemon status:
 ./zako-daemon.sh status

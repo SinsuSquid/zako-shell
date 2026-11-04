@@ -54,7 +54,7 @@ RVC_MODEL_PATH = os.environ.get("ZAKO_RVC_MODEL", os.path.join(DEFAULT_RVC_DIR, 
 RVC_INDEX_PATH = os.environ.get("ZAKO_RVC_INDEX", os.path.join(DEFAULT_RVC_DIR, "added_IVF2983_Flat_nprobe_1_infamous_miku_v2_v2.index"))
 RVC_PITCH = int(os.environ.get("ZAKO_RVC_PITCH", "7"))
 RVC_DEVICE = os.environ.get("ZAKO_RVC_DEVICE", "cpu:0")
-RVC_METHOD = os.environ.get("ZAKO_RVC_METHOD", "pm")
+RVC_METHOD = os.environ.get("ZAKO_RVC_METHOD", "rmvpe")
 
 
 class VoiceServer:
@@ -159,6 +159,7 @@ class VoiceHTTPHandler(BaseHTTPRequestHandler):
                 "status": "ok",
                 "rvc_enabled": voice_server.rvc is not None,
                 "rvc_pitch": RVC_PITCH if voice_server.rvc else 0,
+                "rvc_method": RVC_METHOD if voice_server.rvc else None,
             }
             self.wfile.write(json.dumps(status_data).encode("utf-8"))
         else:

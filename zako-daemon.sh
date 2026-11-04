@@ -45,6 +45,7 @@ VOICE_LOG_FILE="/tmp/zako-voice-daemon.log"
 VOICE_PORT="${ZAKO_VOICE_PORT:-11435}"
 ENABLE_VOICE="${ZAKO_VOICE_DAEMON:-0}"
 ENABLE_RVC="${ZAKO_RVC:-0}"
+RVC_METHOD="${ZAKO_RVC_METHOD:-rmvpe}"
 
 # Auto-detect best python interpreter for voice daemon
 detect_voice_python() {
@@ -93,8 +94,8 @@ start_voice_daemon() {
         return 0
     fi
 
-    echo "Starting zako-voice-daemon (RVC=$ENABLE_RVC, Python=$vpy)..."
-    env PYTHONUNBUFFERED=1 ZAKO_RVC="$ENABLE_RVC" ZAKO_VOICE_PORT="$VOICE_PORT" setsid "$vpy" -u "$SCRIPT_DIR/zako-voice-daemon.py" < /dev/null > "$VOICE_LOG_FILE" 2>&1 &
+    echo "Starting zako-voice-daemon (RVC=$ENABLE_RVC, method=$RVC_METHOD, Python=$vpy)..."
+    env PYTHONUNBUFFERED=1 ZAKO_RVC="$ENABLE_RVC" ZAKO_RVC_METHOD="$RVC_METHOD" ZAKO_VOICE_PORT="$VOICE_PORT" setsid "$vpy" -u "$SCRIPT_DIR/zako-voice-daemon.py" < /dev/null > "$VOICE_LOG_FILE" 2>&1 &
     local vpid=$!
     echo "$vpid" > "$VOICE_PID_FILE"
     disown "$vpid" 2>/dev/null || true
@@ -143,9 +144,15 @@ status_voice_daemon() {
         rvc_on=$(echo "$health" | jq -r '.rvc_enabled' 2>/dev/null || echo "unknown")
         local rvc_pitch
         rvc_pitch=$(echo "$health" | jq -r '.rvc_pitch' 2>/dev/null || echo "0")
+        local rvc_method
+        rvc_method=$(echo "$health" | jq -r '.rvc_method // empty' 2>/dev/null || echo "")
         echo "zako-voice-daemon is running at http://127.0.0.1:$VOICE_PORT ♡"
         if [ "$rvc_on" = "true" ]; then
-            echo "  Voice Engine: sherpa-onnx + RVC Miku (pitch +$rvc_pitch) 🩵"
+            if [ -n "$rvc_method" ]; then
+                echo "  Voice Engine: sherpa-onnx + RVC Miku (pitch +$rvc_pitch, method: $rvc_method) 🩵"
+            else
+                echo "  Voice Engine: sherpa-onnx + RVC Miku (pitch +$rvc_pitch) 🩵"
+            fi
         else
             echo "  Voice Engine: sherpa-onnx GLaDOS (VITS) 🤖"
         fi
@@ -321,6 +328,13 @@ while [ $# -gt 0 ]; do
             ENABLE_VOICE=1
             ENABLE_RVC=1
             ;;
+        --method=*)
+            RVC_METHOD="${1#*=}"
+            ;;
+        --method)
+            shift
+            RVC_METHOD="$1"
+            ;;
         *)
             ;;
     esac
@@ -362,11 +376,12 @@ case "$ACTION" in
         run_foreground
         ;;
     *)
-        echo "Usage: $0 {start|stop|restart|status|voice-start|voice-stop|voice-status|run} [--voice] [--rvc]"
+        echo "Usage: $0 {start|stop|restart|status|voice-start|voice-stop|voice-status|voice-restart|run} [--voice] [--rvc] [--method=rmvpe|pm|harvest]"
         echo "Options:"
-        echo "  --voice, --with-voice    Start persistent voice daemon alongside LLM backend"
-        echo "  --rvc                    Enable RVC voice conversion (Miku, pitch +7)"
-        echo "Environment variables: BACKEND=ollama|llama.cpp, ZAKO_MODEL=zako-tease, ZAKO_RVC=1"
+        echo "  --voice, --with-voice         Start persistent voice daemon alongside LLM backend"
+        echo "  --rvc                         Enable RVC voice conversion (Miku, pitch +7)"
+        echo "  --method=<rmvpe|pm|harvest>   Pitch extraction algorithm (default: rmvpe)"
+        echo "Environment variables: BACKEND=ollama|llama.cpp, ZAKO_MODEL=zako-tease, ZAKO_RVC=1, ZAKO_RVC_METHOD=rmvpe"
         exit 1
         ;;
 esac

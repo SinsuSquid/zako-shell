@@ -145,7 +145,8 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 | `ZAKO_BACKEND` | `ollama` | Backend engine (`ollama` or `llama.cpp`) |
 | `ZAKO_VOICE` | `0` | Enable audible Hostile Ergonomics (`1` = enabled) |
 | `ZAKO_VOICE_SPEED` | `1.0` | Speech playback rate multiplier |
-| `ZAKO_RVC` | `0` | Enable RVC voice conversion (Miku, pitch +7) |
+| `ZAKO_RVC` | `0` | Enable RVC voice conversion (Miku) |
+| `ZAKO_RVC_PITCH` | `7` | Semitones to shift pitch (e.g. `+7` for standard Miku, `+12` for gremlin anime high pitch) |
 | `ZAKO_RVC_METHOD` | `pm` | Pitch extraction algorithm (`pm` is fast & CPU-friendly; `rmvpe` or `harvest`) |
 
 ---

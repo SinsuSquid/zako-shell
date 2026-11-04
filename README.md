@@ -137,18 +137,20 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 | `ZAKO_MODEL` | `zako-tease` | The model name (e.g. `zako-tease`, `zako-tease:3b`, `zako-tease:0.5b`, `qwen2.5:3b`) |
 | `ZAKO_MODEL_SIZE` | Auto (`3b`, `1.5b`, or `0.5b`) | Selects persona script (`3b`, `1.5b`, or `0.5b`) |
 | `ZAKO_ENDPOINT` | `http://127.0.0.1:11434/v1/chat/completions` | Local inference API endpoint |
-| `ZAKO_TIMEOUT` | `3.5` | Max seconds before giving up (prevents prompt lags) |
+| `ZAKO_TIMEOUT` | `5.0` | Max seconds before giving up (prevents prompt lags) |
 | `ZAKO_BACKEND` | `ollama` | Backend engine (`ollama` or `llama.cpp`) |
 | `ZAKO_VOICE` | `0` | Enable audible Hostile Ergonomics (`1` = enabled) |
 | `ZAKO_VOICE_SPEED` | `1.0` | Speech playback rate multiplier |
+| `ZAKO_RVC` | `0` | Enable RVC voice conversion (Miku, pitch +7) |
 
 ---
 
-## 🎙️ Audible Hostile Ergonomics (sherpa-onnx VITS TTS)
+## 🎙️ Audible Hostile Ergonomics (sherpa-onnx + Optional RVC)
 
-Want Mesugaki / GLaDOS to actually **verbally roast you through your speakers** every time you fail a command? 📢♡
+Want Mesugaki to actually **verbally roast you through your speakers** every time you fail a command? 📢♡
 
-Powered by **`sherpa-onnx`** (high-performance C++ ONNX runtime, zero PyTorch bloat, ultra-fast CPU inference without blocking your terminal prompt):
+- **Base TTS Engine**: **`sherpa-onnx`** (high-performance C++ ONNX runtime with GLaDOS VITS).
+- **RVC Voice Conversion (Optional)**: Seamlessly transform the voice into **Hatsune Miku** with **pitch +7** for certified moe!
 
 ### 1. Setup Voice Environment:
 ```bash
@@ -165,6 +167,23 @@ Add to your shell profile (`~/.bashrc`, `~/.zshrc`):
 export ZAKO_VOICE=1
 ```
 Now every mistyped command triggers speech synthesis in the background while your cursor returns immediately! 🚀✨
+
+### 3. Persistent Voice Daemon (Ultra-Fast Preloaded Audio):
+To eliminate model cold-start delay, manage the voice daemon via `zako-daemon.sh`:
+```bash
+# Start GLaDOS voice daemon:
+./zako-daemon.sh voice-start
+
+# Or start with Hatsune Miku RVC (pitch +7):
+./zako-daemon.sh voice-start --rvc
+
+# Check status:
+./zako-daemon.sh status
+
+# Stop voice daemon:
+./zako-daemon.sh voice-stop
+```
+*(If the voice daemon is running, `zako.sh` dispatches audio to it in 18ms; if stopped, it falls back seamlessly to direct background script invocation!)*
 
 ---
 

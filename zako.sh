@@ -50,7 +50,7 @@ fi
 # Default backend: Ollama (port 11434). Backwards-compatible with llama.cpp (port 8080).
 ZAKO_ENDPOINT="${ZAKO_ENDPOINT:-${OLLAMA_ENDPOINT:-${LLAMA_ENDPOINT:-http://127.0.0.1:11434/v1/chat/completions}}}"
 ZAKO_MODEL="${ZAKO_MODEL:-${OLLAMA_MODEL:-zako-tease}}"
-ZAKO_TIMEOUT="${ZAKO_TIMEOUT:-3.5}"
+ZAKO_TIMEOUT="${ZAKO_TIMEOUT:-5.0}"
 ZAKO_VOICE="${ZAKO_VOICE:-0}" # Set to 1 to enable audible voice mockery
 
 # Determine model scale (0.5b vs 1.5b vs 3b)
@@ -187,10 +187,17 @@ if [ -n "$RESPONSE" ] && [ "$RESPONSE" != "null" ]; then
 
     # Audible Hostile Ergonomics: async voice synthesis
     if [ "$ZAKO_VOICE" = "1" ] || [ "$ZAKO_VOICE" = "true" ]; then
+        VOICE_PORT="${ZAKO_VOICE_PORT:-11435}"
         VOICE_PY="$SCRIPT_DIR/zako-voice.py"
         VOICE_PYTHON="${ZAKO_PYTHON:-$SCRIPT_DIR/.venv/bin/python}"
-        if [ -x "$VOICE_PYTHON" ] && [ -f "$VOICE_PY" ]; then
-            ( "$VOICE_PYTHON" "$VOICE_PY" "$RESPONSE" >/dev/null 2>&1 & )
-        fi
+
+        # Fast background dispatch: prefer preloaded daemon, fallback to direct python
+        (
+            if curl -s --max-time 0.2 "http://127.0.0.1:${VOICE_PORT}/health" >/dev/null 2>&1; then
+                curl -s --max-time 2 -X POST "http://127.0.0.1:${VOICE_PORT}/speak" -d "$RESPONSE" >/dev/null 2>&1
+            elif [ -x "$VOICE_PYTHON" ] && [ -f "$VOICE_PY" ]; then
+                "$VOICE_PYTHON" "$VOICE_PY" "$RESPONSE" >/dev/null 2>&1
+            fi
+        ) &
     fi
 fi

@@ -39,6 +39,26 @@ CTX_SIZE="${CTX_SIZE:-512}"
 PID_FILE="/tmp/zako-daemon.pid"
 LOG_FILE="/tmp/zako-daemon.log"
 
+# Voice daemon settings
+VOICE_PID_FILE="/tmp/zako-voice-daemon.pid"
+VOICE_LOG_FILE="/tmp/zako-voice-daemon.log"
+VOICE_PORT="${ZAKO_VOICE_PORT:-11435}"
+ENABLE_VOICE="${ZAKO_VOICE_DAEMON:-0}"
+ENABLE_RVC="${ZAKO_RVC:-0}"
+
+# Auto-detect best python interpreter for voice daemon
+detect_voice_python() {
+    if [ -n "${ZAKO_PYTHON:-}" ] && [ -x "$ZAKO_PYTHON" ]; then
+        echo "$ZAKO_PYTHON"
+    elif [ "$ENABLE_RVC" = "1" ] && [ -x "$SCRIPT_DIR/../Open-LLM-VTuber_RVC/.venv/bin/python" ]; then
+        echo "$SCRIPT_DIR/../Open-LLM-VTuber_RVC/.venv/bin/python"
+    elif [ -x "$SCRIPT_DIR/.venv/bin/python" ]; then
+        echo "$SCRIPT_DIR/.venv/bin/python"
+    else
+        command -v python3 || echo "python3"
+    fi
+}
+
 check_requirements_ollama() {
     if ! command -v "$OLLAMA_BIN" >/dev/null 2>&1 && [ ! -x "$OLLAMA_BIN" ]; then
         echo "Error: ollama not found or not executable. Install from https://ollama.com" >&2
@@ -56,6 +76,85 @@ check_requirements_llama() {
     if [ ! -f "$MODEL_PATH" ]; then
         echo "Error: Model file not found at '$MODEL_PATH'" >&2
         exit 1
+    fi
+}
+
+start_voice_daemon() {
+    local vpy
+    vpy=$(detect_voice_python)
+
+    if [ -f "$VOICE_PID_FILE" ] && kill -0 "$(cat "$VOICE_PID_FILE")" 2>/dev/null; then
+        echo "zako-voice-daemon is already running (PID: $(cat "$VOICE_PID_FILE"))."
+        return 0
+    fi
+
+    if curl -s --max-time 0.5 "http://127.0.0.1:$VOICE_PORT/health" >/dev/null 2>&1; then
+        echo "zako-voice-daemon is already listening on port $VOICE_PORT ♡"
+        return 0
+    fi
+
+    echo "Starting zako-voice-daemon (RVC=$ENABLE_RVC, Python=$vpy)..."
+    env PYTHONUNBUFFERED=1 ZAKO_RVC="$ENABLE_RVC" ZAKO_VOICE_PORT="$VOICE_PORT" setsid "$vpy" -u "$SCRIPT_DIR/zako-voice-daemon.py" < /dev/null > "$VOICE_LOG_FILE" 2>&1 &
+    local vpid=$!
+    echo "$vpid" > "$VOICE_PID_FILE"
+    disown "$vpid" 2>/dev/null || true
+
+    # Wait up to 15 seconds for model preload (RVC on CPU takes ~4-6s to warm up)
+    local wait_count=0
+    while [ $wait_count -lt 30 ]; do
+        if curl -s --max-time 0.3 "http://127.0.0.1:$VOICE_PORT/health" >/dev/null 2>&1; then
+            echo "zako-voice-daemon started successfully on port $VOICE_PORT (PID: $vpid) ♡"
+            return 0
+        fi
+        sleep 0.5
+        wait_count=$((wait_count + 1))
+    done
+
+    if kill -0 "$vpid" 2>/dev/null; then
+        echo "zako-voice-daemon running (PID: $vpid), warming up models... Check $VOICE_LOG_FILE"
+    else
+        echo "zako-voice-daemon failed to start. Check $VOICE_LOG_FILE" >&2
+        rm -f "$VOICE_PID_FILE"
+        return 1
+    fi
+}
+
+stop_voice_daemon() {
+    if [ -f "$VOICE_PID_FILE" ]; then
+        local vpid
+        vpid=$(cat "$VOICE_PID_FILE")
+        if kill -0 "$vpid" 2>/dev/null; then
+            echo "Stopping zako-voice-daemon (PID: $vpid)..."
+            kill "$vpid" 2>/dev/null
+            rm -f "$VOICE_PID_FILE"
+            echo "zako-voice-daemon stopped."
+            return 0
+        fi
+        rm -f "$VOICE_PID_FILE"
+    fi
+    echo "zako-voice-daemon is not running."
+}
+
+status_voice_daemon() {
+    if curl -s --max-time 0.5 "http://127.0.0.1:$VOICE_PORT/health" >/dev/null 2>&1; then
+        local health
+        health=$(curl -s --max-time 1 "http://127.0.0.1:$VOICE_PORT/health" 2>/dev/null)
+        local rvc_on
+        rvc_on=$(echo "$health" | jq -r '.rvc_enabled' 2>/dev/null || echo "unknown")
+        local rvc_pitch
+        rvc_pitch=$(echo "$health" | jq -r '.rvc_pitch' 2>/dev/null || echo "0")
+        echo "zako-voice-daemon is running at http://127.0.0.1:$VOICE_PORT ♡"
+        if [ "$rvc_on" = "true" ]; then
+            echo "  Voice Engine: sherpa-onnx + RVC Miku (pitch +$rvc_pitch) 🩵"
+        else
+            echo "  Voice Engine: sherpa-onnx GLaDOS (VITS) 🤖"
+        fi
+    else
+        if [ -f "$VOICE_PID_FILE" ] && kill -0 "$(cat "$VOICE_PID_FILE")" 2>/dev/null; then
+            echo "zako-voice-daemon process running (PID: $(cat "$VOICE_PID_FILE")), initializing models..."
+        else
+            echo "zako-voice-daemon is stopped."
+        fi
     fi
 }
 
@@ -118,9 +217,15 @@ start_daemon() {
             exit 1
         fi
     fi
+
+    if [ "$ENABLE_VOICE" = "1" ] || [ "$ENABLE_VOICE" = "true" ]; then
+        start_voice_daemon
+    fi
 }
 
 stop_daemon() {
+    stop_voice_daemon 2>/dev/null || true
+
     if [ -f "$PID_FILE" ]; then
         local pid
         pid=$(cat "$PID_FILE")
@@ -181,6 +286,9 @@ status_daemon() {
             echo "zako-daemon (llama-server) is stopped."
         fi
     fi
+
+    echo ""
+    status_voice_daemon
 }
 
 run_foreground() {
@@ -201,7 +309,25 @@ run_foreground() {
     fi
 }
 
-case "${1:-start}" in
+ACTION="${1:-start}"
+shift || true
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --voice|--with-voice)
+            ENABLE_VOICE=1
+            ;;
+        --rvc)
+            ENABLE_VOICE=1
+            ENABLE_RVC=1
+            ;;
+        *)
+            ;;
+    esac
+    shift
+done
+
+case "$ACTION" in
     start)
         start_daemon
         ;;
@@ -216,12 +342,31 @@ case "${1:-start}" in
     status)
         status_daemon
         ;;
+    voice-start)
+        ENABLE_VOICE=1
+        start_voice_daemon
+        ;;
+    voice-stop)
+        stop_voice_daemon
+        ;;
+    voice-status)
+        status_voice_daemon
+        ;;
+    voice-restart)
+        stop_voice_daemon
+        sleep 1
+        ENABLE_VOICE=1
+        start_voice_daemon
+        ;;
     run)
         run_foreground
         ;;
     *)
-        echo "Usage: $0 {start|stop|restart|status|run}"
-        echo "Environment variables: BACKEND=ollama|llama.cpp, ZAKO_MODEL=zako-tease"
+        echo "Usage: $0 {start|stop|restart|status|voice-start|voice-stop|voice-status|run} [--voice] [--rvc]"
+        echo "Options:"
+        echo "  --voice, --with-voice    Start persistent voice daemon alongside LLM backend"
+        echo "  --rvc                    Enable RVC voice conversion (Miku, pitch +7)"
+        echo "Environment variables: BACKEND=ollama|llama.cpp, ZAKO_MODEL=zako-tease, ZAKO_RVC=1"
         exit 1
         ;;
 esac

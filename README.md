@@ -8,13 +8,14 @@
   <img src="https://img.shields.io/badge/VRAM-Spent%20on%20Abuse-ff69b4?style=for-the-badge" alt="VRAM Abuse"/>
   <img src="https://img.shields.io/badge/Productivity-Minus%20100%25-ff1493?style=for-the-badge" alt="Zero Productivity"/>
   <img src="https://img.shields.io/badge/Exit%20Code-%E2%89%A0%200%20Only-black?style=for-the-badge" alt="Failures Only"/>
+  <img src="https://img.shields.io/badge/Voice%20Roast-GLaDOS%20%2F%20Miku%20%2B7-39c5bb?style=for-the-badge" alt="Audio Abuse"/>
 </p>
 </div>
 
 ![Haaaaaaah?](zako-preview.gif)
 
-**An offline, zero-latency Hostile Ergonomics shell hook powered by `Ollama` & `llama.cpp`**  
-*Because why should GitHub Copilot politely fix your typos when a bratty local sLLM can bully you for them instead?*
+**An offline, zero-latency Hostile Ergonomics shell hook powered by `Ollama`, `llama.cpp`, and `sherpa-onnx` + RVC**  
+*Because why should GitHub Copilot politely fix your typos when an AI brat can point, laugh, and audibly roast you in your headphones instead?*
 
 ---
 
@@ -75,8 +76,11 @@ ollama create zako-tease:0.5b -f Modelfiles/Modelfile.0.5b
 # Verify status:
 ./zako-daemon.sh status
 
-# Start daemon if not running:
+# Start LLM daemon:
 ./zako-daemon.sh start
+
+# Or start with full voice synthesis (preloaded GLaDOS + Miku RVC):
+./zako-daemon.sh start --with-voice --rvc
 ```
 
 ---
@@ -147,14 +151,15 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 
 ## 🎙️ Audible Hostile Ergonomics (sherpa-onnx + Optional RVC)
 
-Want Mesugaki to actually **verbally roast you through your speakers** every time you fail a command? 📢♡
+Want Mesugaki / GLaDOS to actually **verbally roast and giggle at you through your speakers or Bluetooth headphones** every time you fail a command? 📢♡
 
 - **Base TTS Engine**: **`sherpa-onnx`** (high-performance C++ ONNX runtime with GLaDOS VITS).
-- **RVC Voice Conversion (Optional)**: Seamlessly transform the voice into **Hatsune Miku** with **pitch +7** for certified moe!
+- **RVC Voice Conversion (Optional)**: Seamlessly transforms GLaDOS into **Hatsune Miku** with **pitch +7** for certified anime moe!
+- **Zero-Latency Prosody**: Sentence chunking + acoustic sanitization cleans raw tropes (`"Haaah?"` ➔ `"Hah?"`, `"Zako"` ➔ `"Zacco"` with fast vowel pacing) and streams audio without blocking your prompt.
 
 ### 1. Setup Voice Environment:
 ```bash
-# Setup lightweight venv
+# Setup lightweight venv for sherpa-onnx
 uv venv --python 3.12 .venv
 uv pip install --python .venv "sherpa-onnx==1.10.46" soundfile numpy
 
@@ -166,10 +171,10 @@ Add to your shell profile (`~/.bashrc`, `~/.zshrc`):
 ```bash
 export ZAKO_VOICE=1
 ```
-Now every mistyped command triggers speech synthesis in the background while your cursor returns immediately! 🚀✨
+Now every mistyped command triggers verbal mockery in the background while your cursor returns immediately! 🚀✨
 
 ### 3. Persistent Voice Daemon (Ultra-Fast Preloaded Audio):
-To eliminate model cold-start delay, manage the voice daemon via `zako-daemon.sh`:
+To eliminate model cold-start delays, manage the voice daemon via `zako-daemon.sh`:
 ```bash
 # Start GLaDOS voice daemon:
 ./zako-daemon.sh voice-start
@@ -177,13 +182,13 @@ To eliminate model cold-start delay, manage the voice daemon via `zako-daemon.sh
 # Or start with Hatsune Miku RVC (pitch +7):
 ./zako-daemon.sh voice-start --rvc
 
-# Check status:
+# Check unified daemon status:
 ./zako-daemon.sh status
 
 # Stop voice daemon:
 ./zako-daemon.sh voice-stop
 ```
-*(If the voice daemon is running, `zako.sh` dispatches audio to it in 18ms; if stopped, it falls back seamlessly to direct background script invocation!)*
+*(If the voice daemon is running, `zako.sh` dispatches audio to it in **18ms**; if stopped, it falls back seamlessly to direct background script invocation!)*
 
 ---
 

@@ -146,7 +146,7 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 | `ZAKO_VOICE` | `0` | Enable audible Hostile Ergonomics (`1` = enabled) |
 | `ZAKO_VOICE_SPEED` | `1.0` | Speech playback rate multiplier |
 | `ZAKO_RVC` | `0` | Enable RVC voice conversion (Miku, pitch +7) |
-| `ZAKO_RVC_METHOD` | `rmvpe` | Pitch extraction algorithm (`rmvpe`, `pm`, or `harvest`) |
+| `ZAKO_RVC_METHOD` | `pm` | Pitch extraction algorithm (`pm` is fast & CPU-friendly; `rmvpe` or `harvest`) |
 
 ---
 

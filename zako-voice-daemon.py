@@ -54,7 +54,7 @@ RVC_MODEL_PATH = os.environ.get("ZAKO_RVC_MODEL", os.path.join(DEFAULT_RVC_DIR, 
 RVC_INDEX_PATH = os.environ.get("ZAKO_RVC_INDEX", os.path.join(DEFAULT_RVC_DIR, "added_IVF2983_Flat_nprobe_1_infamous_miku_v2_v2.index"))
 RVC_PITCH = int(os.environ.get("ZAKO_RVC_PITCH", "7"))
 RVC_DEVICE = os.environ.get("ZAKO_RVC_DEVICE", "cpu:0")
-RVC_METHOD = os.environ.get("ZAKO_RVC_METHOD", "rmvpe")
+RVC_METHOD = os.environ.get("ZAKO_RVC_METHOD", "pm")
 
 
 class VoiceServer:

@@ -45,7 +45,7 @@ VOICE_LOG_FILE="/tmp/zako-voice-daemon.log"
 VOICE_PORT="${ZAKO_VOICE_PORT:-11435}"
 ENABLE_VOICE="${ZAKO_VOICE_DAEMON:-0}"
 ENABLE_RVC="${ZAKO_RVC:-0}"
-RVC_METHOD="${ZAKO_RVC_METHOD:-rmvpe}"
+RVC_METHOD="${ZAKO_RVC_METHOD:-pm}"
 
 # Auto-detect best python interpreter for voice daemon
 detect_voice_python() {

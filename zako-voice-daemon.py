@@ -52,7 +52,7 @@ VOICE_SPEED = float(os.environ.get("ZAKO_VOICE_SPEED", "1.0"))
 DEFAULT_RVC_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "Open-LLM-VTuber_RVC", "models", "rvc", "infamous_miku_v2"))
 RVC_MODEL_PATH = os.environ.get("ZAKO_RVC_MODEL", os.path.join(DEFAULT_RVC_DIR, "infamous_miku_v2.pth"))
 RVC_INDEX_PATH = os.environ.get("ZAKO_RVC_INDEX", os.path.join(DEFAULT_RVC_DIR, "added_IVF2983_Flat_nprobe_1_infamous_miku_v2_v2.index"))
-RVC_PITCH = int(os.environ.get("ZAKO_RVC_PITCH", "7"))
+RVC_PITCH = int(os.environ.get("ZAKO_RVC_PITCH", "8"))
 RVC_DEVICE = os.environ.get("ZAKO_RVC_DEVICE", "cpu:0")
 RVC_METHOD = os.environ.get("ZAKO_RVC_METHOD", "pm")
 

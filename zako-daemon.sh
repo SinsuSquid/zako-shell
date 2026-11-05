@@ -46,7 +46,7 @@ VOICE_PORT="${ZAKO_VOICE_PORT:-11435}"
 ENABLE_VOICE="${ZAKO_VOICE_DAEMON:-0}"
 ENABLE_RVC="${ZAKO_RVC:-0}"
 RVC_METHOD="${ZAKO_RVC_METHOD:-pm}"
-RVC_PITCH="${ZAKO_RVC_PITCH:-7}"
+RVC_PITCH="${ZAKO_RVC_PITCH:-8}"
 
 # Auto-detect best python interpreter for voice daemon
 detect_voice_python() {
@@ -388,9 +388,9 @@ case "$ACTION" in
         echo "Options:"
         echo "  --voice, --with-voice         Start persistent voice daemon alongside LLM backend"
         echo "  --rvc                         Enable RVC voice conversion (Miku)"
-        echo "  --pitch=<n>                   RVC pitch shift semitones (default: 7)"
+        echo "  --pitch=<n>                   RVC pitch shift semitones (default: 8)"
         echo "  --method=<pm|rmvpe|harvest>   Pitch extraction algorithm (default: pm)"
-        echo "Environment variables: BACKEND=ollama|llama.cpp, ZAKO_MODEL=zako-tease, ZAKO_RVC=1, ZAKO_RVC_PITCH=7, ZAKO_RVC_METHOD=pm"
+        echo "Environment variables: BACKEND=ollama|llama.cpp, ZAKO_MODEL=zako-tease, ZAKO_RVC=1, ZAKO_RVC_PITCH=8, ZAKO_RVC_METHOD=pm"
         exit 1
         ;;
 esac

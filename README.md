@@ -146,7 +146,7 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 | `ZAKO_VOICE` | `0` | Enable audible Hostile Ergonomics (`1` = enabled) |
 | `ZAKO_VOICE_SPEED` | `1.0` | Speech playback rate multiplier |
 | `ZAKO_RVC` | `0` | Enable RVC voice conversion (Miku) |
-| `ZAKO_RVC_PITCH` | `7` | Semitones to shift pitch (e.g. `+7` for standard Miku, `+12` for gremlin anime high pitch) |
+| `ZAKO_RVC_PITCH` | `8` | Semitones to shift pitch (default `+8` for certified anime moe; `+12` for gremlin mode) |
 | `ZAKO_RVC_METHOD` | `pm` | Pitch extraction algorithm (`pm` is fast & CPU-friendly; `rmvpe` or `harvest`) |
 
 ---
@@ -156,7 +156,7 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 Want Mesugaki / GLaDOS to actually **verbally roast and giggle at you through your speakers or Bluetooth headphones** every time you fail a command? 📢♡
 
 - **Base TTS Engine**: **`sherpa-onnx`** (high-performance C++ ONNX runtime with GLaDOS VITS).
-- **RVC Voice Conversion (Optional)**: Seamlessly transforms GLaDOS into **Hatsune Miku** with **pitch +7** for certified anime moe!
+- **RVC Voice Conversion (Optional)**: Seamlessly transforms GLaDOS into **Hatsune Miku** with **pitch +8** for certified anime moe!
 - **Zero-Latency Prosody**: Sentence chunking + acoustic sanitization cleans raw tropes (dramatic elongated `"Haaaaaaaaaaaaah?"`, `"Zako"` ➔ `"Zacco"` with fast vowel pacing) and streams audio without blocking your prompt.
 
 ### 1. Setup Voice Environment:
@@ -181,11 +181,11 @@ To eliminate model cold-start delays, manage the voice daemon via `zako-daemon.s
 # Start GLaDOS voice daemon:
 ./zako-daemon.sh voice-start
 
-# Or start with Hatsune Miku RVC (pitch +7, lightweight pm default):
+# Or start with Hatsune Miku RVC (pitch +8, lightweight pm default):
 ./zako-daemon.sh voice-start --rvc
 
 # Customize pitch and extraction algorithm (pm, rmvpe, or harvest):
-./zako-daemon.sh voice-restart --rvc --pitch=7 --method=pm
+./zako-daemon.sh voice-restart --rvc --pitch=8 --method=pm
 
 # Check unified daemon status:
 ./zako-daemon.sh status

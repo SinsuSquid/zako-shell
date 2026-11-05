@@ -2,13 +2,13 @@
 
 # > zako-shell ♡
 
-### *"Haaah? Did you really trigger another non-zero exit code, Zako~♡?"*
+### *"Haaaaah? Did you really trigger another non-zero exit code, Zako~♡?"*
 
 <p align="center">
   <img src="https://img.shields.io/badge/VRAM-Spent%20on%20Abuse-ff69b4?style=for-the-badge" alt="VRAM Abuse"/>
   <img src="https://img.shields.io/badge/Productivity-Minus%20100%25-ff1493?style=for-the-badge" alt="Zero Productivity"/>
   <img src="https://img.shields.io/badge/Exit%20Code-%E2%89%A0%200%20Only-black?style=for-the-badge" alt="Failures Only"/>
-  <img src="https://img.shields.io/badge/Voice%20Roast-GLaDOS%20%2F%20Miku%20%2B7-39c5bb?style=for-the-badge" alt="Audio Abuse"/>
+  <img src="https://img.shields.io/badge/Voice%20Roast-GLaDOS%20%2F%20Miku%20%2B8-39c5bb?style=for-the-badge" alt="Audio Abuse"/>
 </p>
 </div>
 

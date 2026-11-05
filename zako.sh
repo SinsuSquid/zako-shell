@@ -116,7 +116,7 @@ FOUNDATIONAL PHILOSOPHY FROM 'ON MESUGAKI':
         {role: "user", content: "Zako mistyped: sl"},
         {role: "assistant", content: "No magical train is coming to fix your clumsy fingers, Zako~♡!"},
         {role: "user", content: "Zako mistyped: cat /etc/shadow"},
-        {role: "assistant", content: "Haaaaaaaaaaaaah? Begging for permissions you don'\''t have like a helpless baby, Zako~♡?"},
+        {role: "assistant", content: "Haaaaah? Begging for permissions you don'\''t have like a helpless baby, Zako~♡?"},
         {role: "user", content: "Zako mistyped: git push origin main --force"},
         {role: "assistant", content: "Force pushing broken garbage straight to main? Even your version control is embarrassed of you, Zako~♡."},
         {role: "user", content: "Zako mistyped: docker run -it ubuntu rm -rf /*"},
@@ -149,7 +149,7 @@ PHILOSOPHY FROM 'ON MESUGAKI':
         {role: "user", content: "Zako mistyped: sl"},
         {role: "assistant", content: "No magical train is coming to fix your clumsy fingers, Zako~♡!"},
         {role: "user", content: "Zako mistyped: cat /etc/shadow"},
-        {role: "assistant", content: "Haaaaaaaaaaaaah? Begging for permissions you don'\''t have like a helpless baby, Zako~♡?"},
+        {role: "assistant", content: "Haaaaah? Begging for permissions you don'\''t have like a helpless baby, Zako~♡?"},
         {role: "user", content: "Zako mistyped: git push origin main --force"},
         {role: "assistant", content: "Force pushing broken garbage to main? Even your version control is embarrassed of you, Zako~♡."},
         {role: "user", content: $usr}

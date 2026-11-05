@@ -37,12 +37,12 @@ def clean_text_for_speech(text: str) -> str:
     clean = re.sub(r"^🐟\s*:\s*", "", clean)
 
     # 2. Specific word / trope hijacks for audio:
-    # Transform 'Hah?', 'Haaah?', 'Haaaaaaaaaaaaah?' into dramatic elongated anime gasp
+    # Transform 'Hah?', 'Haaah?', 'Haaaaaaaaaaaaah?' into calibrated 5-vowel anime gasp 'Haaaaah?'
     clean = re.sub(r"(?i)\bh+a+h*\b([?!]*)", r"__MESUGAKI_GASPH__\1", clean)
 
     # 3. Normalize elongated vowel/consonant screams ('Awwwww' -> 'Aww', 'Nooooo' -> 'Noo')
     clean = re.sub(r"([a-zA-Z])\1{2,}", r"\1\1", clean)
-    clean = clean.replace("__MESUGAKI_GASPH__", "Haaaaaaaaaaaaah")
+    clean = clean.replace("__MESUGAKI_GASPH__", "Haaaaah")
 
     # 4. Cleanse 'Zako~♡' and all '~♡' variants
     # Cleanly preserve intended punctuation (!, ?, .) without speaking 'tilde' or 'heart'

@@ -40,9 +40,13 @@ def clean_text_for_speech(text: str) -> str:
     # Transform 'Hah?', 'Haaah?', 'Haaaaaaaaaaaaah?' into calibrated 5-vowel anime gasp 'Haaaaah?'
     clean = re.sub(r"(?i)\bh+a+h*\b([?!]*)", r"__MESUGAKI_GASPH__\1", clean)
 
+    # Protect elongated teasing 'Zaaaaako' (2+ 'a's) before scream normalizer runs
+    clean = re.sub(r"(?i)\bza{2,}ko\b", r"__MESUGAKI_ZAKODRAWL__", clean)
+
     # 3. Normalize elongated vowel/consonant screams ('Awwwww' -> 'Aww', 'Nooooo' -> 'Noo')
     clean = re.sub(r"([a-zA-Z])\1{2,}", r"\1\1", clean)
     clean = clean.replace("__MESUGAKI_GASPH__", "Haaaaah")
+    clean = clean.replace("__MESUGAKI_ZAKODRAWL__", "Zaaaaako")
 
     # 4. Cleanse 'Zako~♡' and all '~♡' variants
     # Cleanly preserve intended punctuation (!, ?, .) without speaking 'tilde' or 'heart'
@@ -51,7 +55,8 @@ def clean_text_for_speech(text: str) -> str:
     clean = re.sub(r"[~♡♥❤💕]", "", clean)
 
     # 5. Phonetic pacing hijacks:
-    # 'Zako' -> 'Zacco' (sharp, fast, clipped 'a' instead of sluggish elongated 'aa')
+    # Short 'Zako' -> 'Zacco' (sharp, fast, clipped 'a' instead of sluggish elongated 'aa')
+    # Note: 'Zaaaaako' was safely protected above and won't match \bzako\b!
     clean = re.sub(r"(?i)\bzako\b", "Zacco", clean)
 
     # 6. Strip single/double/backtick quotes around command names so TTS doesn't say 'quote'

@@ -157,7 +157,7 @@ Want Mesugaki / GLaDOS to actually **verbally roast and giggle at you through yo
 
 - **Base TTS Engine**: **`sherpa-onnx`** (high-performance C++ ONNX runtime with GLaDOS VITS).
 - **RVC Voice Conversion (Optional)**: Seamlessly transforms GLaDOS into **Hatsune Miku** with **pitch +8** for certified anime moe!
-- **Zero-Latency Prosody**: Sentence chunking + acoustic sanitization cleans raw tropes (calibrated `"Haaaaah?"`, `"Zako"` ➔ `"Zacco"` with fast vowel pacing) and streams audio without blocking your prompt.
+- **Zero-Latency Prosody**: Sentence chunking + acoustic sanitization cleans raw tropes (calibrated `"Haaaaah?"`, snappy `"Zako"` ➔ `"Zacco"`, and teasing drawl `"Zaaaaako"`) and streams audio without blocking your prompt.
 
 ### 1. Setup Voice Environment:
 ```bash

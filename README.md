@@ -157,13 +157,13 @@ Want Mesugaki / GLaDOS to actually **verbally roast and giggle at you through yo
 
 - **Base TTS Engine**: **`sherpa-onnx`** (high-performance C++ ONNX runtime with GLaDOS VITS).
 - **RVC Voice Conversion (Optional)**: Seamlessly transforms GLaDOS into **Hatsune Miku** with **pitch +7** for certified anime moe!
-- **Zero-Latency Prosody**: Sentence chunking + acoustic sanitization cleans raw tropes (`"Haaah?"` ➔ `"Hah?"`, `"Zako"` ➔ `"Zacco"` with fast vowel pacing) and streams audio without blocking your prompt.
+- **Zero-Latency Prosody**: Sentence chunking + acoustic sanitization cleans raw tropes (dramatic elongated `"Haaaaaaaaaaaaah?"`, `"Zako"` ➔ `"Zacco"` with fast vowel pacing) and streams audio without blocking your prompt.
 
 ### 1. Setup Voice Environment:
 ```bash
-# Setup lightweight venv for sherpa-onnx
-uv venv --python 3.12 .venv
-uv pip install --python .venv "sherpa-onnx==1.10.46" soundfile numpy
+# Setup self-contained Python 3.10 virtual environment
+uv venv --python 3.10 .venv
+uv pip install --python .venv "sherpa-onnx==1.10.46" soundfile numpy "setuptools<81" "librosa>=0.10" infer-rvc-python
 
 # The GLaDOS VITS ONNX model lives in voices/vits-piper-en_US-glados/
 ```

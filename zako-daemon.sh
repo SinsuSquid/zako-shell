@@ -52,10 +52,10 @@ RVC_PITCH="${ZAKO_RVC_PITCH:-7}"
 detect_voice_python() {
     if [ -n "${ZAKO_PYTHON:-}" ] && [ -x "$ZAKO_PYTHON" ]; then
         echo "$ZAKO_PYTHON"
-    elif [ "$ENABLE_RVC" = "1" ] && [ -x "$SCRIPT_DIR/../Open-LLM-VTuber_RVC/.venv/bin/python" ]; then
-        echo "$SCRIPT_DIR/../Open-LLM-VTuber_RVC/.venv/bin/python"
     elif [ -x "$SCRIPT_DIR/.venv/bin/python" ]; then
         echo "$SCRIPT_DIR/.venv/bin/python"
+    elif [ "$ENABLE_RVC" = "1" ] && [ -x "$SCRIPT_DIR/../Open-LLM-VTuber_RVC/.venv/bin/python" ]; then
+        echo "$SCRIPT_DIR/../Open-LLM-VTuber_RVC/.venv/bin/python"
     else
         command -v python3 || echo "python3"
     fi

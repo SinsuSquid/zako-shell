@@ -87,23 +87,26 @@ class VoiceServer:
                 print(f"[!] Warning: RVC model not found at '{RVC_MODEL_PATH}'. Running without RVC.")
                 return
 
-            print(f"[*] Initializing RVC engine (Miku, pitch={RVC_PITCH})...")
+            print(f"[*] Initializing RVC engine via infer_rvc_python (Miku, pitch={RVC_PITCH}, method={RVC_METHOD})...")
             try:
-                from rvc_python.infer import RVCInference
-                self.rvc = RVCInference(device=RVC_DEVICE)
-                self.rvc.load_model(
-                    RVC_MODEL_PATH,
-                    index_path=RVC_INDEX_PATH if os.path.isfile(RVC_INDEX_PATH) else "",
+                from infer_rvc_python import BaseLoader
+                self.rvc = BaseLoader(only_cpu=True)
+                self.rvc.apply_conf(
+                    tag="miku",
+                    file_model=RVC_MODEL_PATH,
+                    pitch_algo=RVC_METHOD,
+                    pitch_lvl=RVC_PITCH,
+                    file_index=RVC_INDEX_PATH if os.path.isfile(RVC_INDEX_PATH) else "",
+                    index_influence=0.75,
                 )
-                self.rvc.set_params(
-                    f0up_key=RVC_PITCH,
-                    f0method=RVC_METHOD,
-                    index_rate=0.75,
-                )
-                # Warm up HuBERT pipeline with 0.1s silence
-                with tempfile.NamedTemporaryFile(suffix=".wav") as w_in, tempfile.NamedTemporaryFile(suffix=".wav") as w_out:
+                # Warm up pipeline with 0.1s silence
+                with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as w_in:
                     sf.write(w_in.name, np.zeros(16000, dtype=np.float32), 16000)
-                    self.rvc.infer_file(w_in.name, w_out.name)
+                    warm_out = self.rvc(audio_files=w_in.name, tag_list="miku", show_progress=False)
+                    if os.path.exists(w_in.name):
+                        os.remove(w_in.name)
+                    if warm_out and len(warm_out) > 0 and os.path.exists(warm_out[0]):
+                        os.remove(warm_out[0])
                 print("  ✓ RVC engine preloaded and warmed up!")
             except Exception as e:
                 print(f"[!] Error loading RVC engine: {e}. Running without RVC.")
@@ -124,19 +127,20 @@ class VoiceServer:
 
                 if self.rvc:
                     # Convert via RVC
-                    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as in_tmp, \
-                         tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as out_tmp:
+                    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as in_tmp:
                         in_path = in_tmp.name
-                        out_path = out_tmp.name
                         sf.write(in_path, samples, audio.sample_rate)
 
+                    out_path = None
                     try:
-                        self.rvc.infer_file(in_path, out_path)
-                        subprocess.run(["pw-play", out_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        res = self.rvc(audio_files=in_path, tag_list="miku", show_progress=False)
+                        if res and len(res) > 0 and os.path.exists(res[0]):
+                            out_path = res[0]
+                            subprocess.run(["pw-play", out_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     finally:
                         if os.path.exists(in_path):
                             os.remove(in_path)
-                        if os.path.exists(out_path):
+                        if out_path and os.path.exists(out_path):
                             os.remove(out_path)
                 else:
                     zako_voice.play_audio(samples, audio.sample_rate)

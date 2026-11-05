@@ -8,6 +8,10 @@ __pycache__/
 *.py[cod]
 .env
 .env.*
+*.pt
+*.pth
+*.onnx
+*.index
 
 
 

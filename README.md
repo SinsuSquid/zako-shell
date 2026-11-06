@@ -163,9 +163,10 @@ Want Mesugaki / GLaDOS to actually **verbally roast and giggle at you through yo
 ```bash
 # Setup self-contained Python 3.10 virtual environment
 uv venv --python 3.10 .venv
-uv pip install --python .venv "sherpa-onnx==1.10.46" soundfile numpy "setuptools<81" "librosa>=0.10" infer-rvc-python
+uv pip install --python .venv "sherpa-onnx==1.10.46" soundfile numpy "setuptools<82" "librosa>=0.10" infer-rvc-python
 
 # The GLaDOS VITS ONNX model lives in voices/vits-piper-en_US-glados/
+# Hatsune Miku RVC weights live in voices/infamous_miku_v2/
 ```
 
 ### 2. Enable in Shell:
@@ -194,6 +195,27 @@ To eliminate model cold-start delays, manage the voice daemon via `zako-daemon.s
 ./zako-daemon.sh voice-stop
 ```
 *(If the voice daemon is running, `zako.sh` dispatches audio to it in **18ms**; if stopped, it falls back seamlessly to direct background script invocation!)*
+
+### 4. Running as Systemd User Services (Auto-Start on Boot):
+Run both Ollama and the Voice Daemon as persistent user services (`~/.config/systemd/user/`):
+```bash
+# Copy unit files
+mkdir -p ~/.config/systemd/user
+cp zako-daemon.service zako-voice.service ~/.config/systemd/user/
+
+# Reload & enable both services on boot
+systemctl --user daemon-reload
+systemctl --user enable --now zako-daemon zako-voice
+```
+
+Managing the services:
+```bash
+# Check status
+systemctl --user status zako-voice zako-daemon
+
+# Restart voice daemon (e.g. after changing settings or models)
+systemctl --user restart zako-voice
+```
 
 ---
 

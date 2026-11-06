@@ -1,0 +1,19 @@
+[Unit]
+Description=Zako Hostile Ergonomics Voice Daemon (sherpa-onnx + RVC Miku)
+After=network.target sound.target pipewire.service
+Wants=pipewire.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Projects/zako-shell
+ExecStart=%h/Projects/zako-shell/.venv/bin/python -u %h/Projects/zako-shell/zako-voice-daemon.py
+Restart=on-failure
+RestartSec=3
+Environment="PYTHONUNBUFFERED=1"
+Environment="ZAKO_RVC=1"
+Environment="ZAKO_RVC_PITCH=8"
+Environment="ZAKO_RVC_METHOD=pm"
+Environment="ZAKO_VOICE_PORT=11435"
+
+[Install]
+WantedBy=default.target

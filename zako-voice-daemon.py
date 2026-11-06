@@ -48,8 +48,10 @@ TOKENS_PATH = os.environ.get("ZAKO_VOICE_TOKENS", os.path.join(MODEL_DIR, "token
 DATA_DIR = os.environ.get("ZAKO_VOICE_DATA", os.path.join(MODEL_DIR, "espeak-ng-data"))
 VOICE_SPEED = float(os.environ.get("ZAKO_VOICE_SPEED", "1.0"))
 
-# RVC Paths & Settings (default: Miku model from Open-LLM-VTuber_RVC)
-DEFAULT_RVC_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "Open-LLM-VTuber_RVC", "models", "rvc", "infamous_miku_v2"))
+# RVC Paths & Settings (default: local voices/infamous_miku_v2 with fallback)
+LOCAL_RVC_DIR = os.path.join(SCRIPT_DIR, "voices", "infamous_miku_v2")
+EXT_RVC_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "Open-LLM-VTuber_RVC", "models", "rvc", "infamous_miku_v2"))
+DEFAULT_RVC_DIR = LOCAL_RVC_DIR if os.path.isdir(LOCAL_RVC_DIR) else EXT_RVC_DIR
 RVC_MODEL_PATH = os.environ.get("ZAKO_RVC_MODEL", os.path.join(DEFAULT_RVC_DIR, "infamous_miku_v2.pth"))
 RVC_INDEX_PATH = os.environ.get("ZAKO_RVC_INDEX", os.path.join(DEFAULT_RVC_DIR, "added_IVF2983_Flat_nprobe_1_infamous_miku_v2_v2.index"))
 RVC_PITCH = int(os.environ.get("ZAKO_RVC_PITCH", "8"))

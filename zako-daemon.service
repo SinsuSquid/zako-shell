@@ -1,12 +1,14 @@
 [Unit]
 Description=Zako Hostile Ergonomics Daemon (Ollama)
 After=network.target
+Wants=zako-voice.service
 
 [Service]
 Type=exec
-ExecStart=/usr/local/bin/ollama serve
+ExecStart=%h/.local/bin/ollama serve
 Restart=on-failure
 RestartSec=3
+Environment="OLLAMA_IGPU_ENABLE=1"
 
 [Install]
 WantedBy=default.target

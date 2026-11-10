@@ -52,7 +52,24 @@ git: 'psh' is not a git command. See 'git --help'.
 
 ## 🚀 Quick Start (Summoning the Daemon)
 
-### Option A: Using Ollama (Recommended)
+### ⚡ One-Command Automated Setup
+
+The fastest way to get completely insulted:
+
+```bash
+# Automated interactive installation (hook symlink + shell injection + model setup):
+./install.sh
+
+# Or full-featured setup with voice synthesis & systemd user services:
+./install.sh --with-voice --systemd
+
+# Preview everything without modifying anything:
+./install.sh --dry-run
+```
+
+---
+
+### Manual Setup & Model Details
 
 **3B** (high wit & devastating nuance), **1.5B** (rich contextual wit), and **0.5B** (ultra-low VRAM & zero latency) models are supported with dedicated, cognitively tailored persona scripts:
 
@@ -260,3 +277,28 @@ function __zako_fail --on-event fish_postexec
     end
 end
 ```
+
+---
+
+## 🧹 Uninstallation ("Ragequitting Already, Zako~♡?")
+
+Had enough of having your mistakes audibly and textually mocked? To restore your boring, quiet terminal:
+
+```bash
+# Interactive uninstallation (prompts before deleting models / venv):
+./uninstall.sh
+
+# Or full clean purge (services, symlink, shell hooks, Ollama models, and venv):
+./uninstall.sh --all
+
+# Preview what would be removed without modifying anything:
+./uninstall.sh --dry-run
+```
+
+The script automatically:
+1. Stops and disables systemd user services (`zako-daemon`, `zako-voice`)
+2. Terminates running background daemons and cleans up PID / log files
+3. Removes the hook binary symlink (`~/.local/bin/zako.sh`)
+4. Safely removes hook blocks from `~/.bashrc`, `~/.zshrc`, and `~/.config/fish/config.fish` (with automatic timestamped backups!)
+5. Optionally purges custom Ollama models (`zako-tease*`) and the voice environment (`.venv`)
+

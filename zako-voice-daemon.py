@@ -176,7 +176,7 @@ class VoiceServer:
             audio /= audio_max
 
         audio = self.signal.filtfilt(self.bh, self.ah, audio)
-        audio_pad = np.pad(audio, (self.pipe.window // 2, self.pipe.window // 2), mode="reflect")
+        audio_pad = np.pad(audio, (self.pipe.t_pad, self.pipe.t_pad), mode="reflect")
         p_len = audio_pad.shape[0] // self.pipe.window
 
         pitch, pitchf = self.pipe.get_f0(

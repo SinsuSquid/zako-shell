@@ -17,6 +17,7 @@ import sys
 import time
 import io
 import queue
+import re
 import tempfile
 import subprocess
 import threading
@@ -288,20 +289,26 @@ class VoiceServer:
     def speak_stream(self, text: str, on_chunk_play=None):
         """Process and speak text chunk-by-chunk with sample-accurate lipsync callbacks."""
         with self.lock:
-            cleaned = zako_voice.clean_text_for_speech(text)
-            chunks = zako_voice.split_into_chunks(cleaned)
+            # Strip ANSI and avatar header if present, preserving original casing & 'Zako'
+            raw_text = re.sub(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])", "", text)
+            raw_text = re.sub(r"^🐟\s*:\s*", "", raw_text).strip()
+            chunks = zako_voice.split_into_chunks(raw_text)
 
             for chunk in chunks:
                 if not chunk.strip():
                     continue
 
+                display_chunk = chunk.strip()
+                # Clean phonetic text strictly for TTS audio engine (e.g. Zako -> Zacco phonetics)
+                speech_chunk = zako_voice.clean_text_for_speech(chunk)
+
                 try:
-                    audio_16k = self._synthesize_edge_tts(chunk)
+                    audio_16k = self._synthesize_edge_tts(speech_chunk)
                     if audio_16k is None or len(audio_16k) == 0:
                         continue
 
-                    # Hook callback for the exact millisecond pw-play fires this chunk
-                    cb = (lambda c=chunk: on_chunk_play(c)) if on_chunk_play else None
+                    # Hook callback with original 'display_chunk' so terminal prints 'Zako'
+                    cb = (lambda d=display_chunk: on_chunk_play(d)) if on_chunk_play else None
 
                     if self.net_g:
                         teto_samples = self._fast_convert(audio_16k, pitch_shift=RVC_PITCH)

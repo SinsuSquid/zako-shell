@@ -105,7 +105,12 @@ class VoiceServer:
             item = self.play_queue.get()
             if item is None:
                 break
-            samples, sr = item
+            samples, sr, on_start = item
+            if on_start:
+                try:
+                    on_start()
+                except Exception:
+                    pass
             try:
                 self._play_samples(samples, sr)
             except Exception as e:
@@ -278,6 +283,10 @@ class VoiceServer:
 
     def speak(self, text: str):
         """Process and speak text chunk-by-chunk with instant pipelined conveyor belt."""
+        self.speak_stream(text, on_chunk_play=None)
+
+    def speak_stream(self, text: str, on_chunk_play=None):
+        """Process and speak text chunk-by-chunk with sample-accurate lipsync callbacks."""
         with self.lock:
             cleaned = zako_voice.clean_text_for_speech(text)
             chunks = zako_voice.split_into_chunks(cleaned)
@@ -291,16 +300,19 @@ class VoiceServer:
                     if audio_16k is None or len(audio_16k) == 0:
                         continue
 
+                    # Hook callback for the exact millisecond pw-play fires this chunk
+                    cb = (lambda c=chunk: on_chunk_play(c)) if on_chunk_play else None
+
                     if self.net_g:
                         teto_samples = self._fast_convert(audio_16k, pitch_shift=RVC_PITCH)
-                        self.play_queue.put((teto_samples, 40000))
+                        self.play_queue.put((teto_samples, 40000, cb))
                     else:
-                        self.play_queue.put((audio_16k, 16000))
+                        self.play_queue.put((audio_16k, 16000, cb))
 
                 except Exception as e:
                     print(f"[!] Synthesis error on chunk: {e}")
 
-            # Wait for all audio in the conveyor belt to finish playing before releasing lock
+            # Wait for all audio in the conveyor belt to finish playing
             self.play_queue.join()
 
 
@@ -331,7 +343,7 @@ class VoiceHTTPHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def do_POST(self):
-        if self.path == "/speak":
+        if self.path.startswith("/speak"):
             content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length).decode("utf-8", errors="replace")
 
@@ -343,13 +355,43 @@ class VoiceHTTPHandler(BaseHTTPRequestHandler):
             except Exception:
                 pass
 
-            if text.strip():
-                threading.Thread(target=voice_server.speak, args=(text,), daemon=True).start()
+            if not text.strip():
+                self.send_response(200)
+                self.end_headers()
+                return
 
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(b'{"status":"speaking"}')
+            is_stream = "stream=1" in self.path
+
+            if is_stream:
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Cache-Control", "no-cache")
+                self.send_header("X-Accel-Buffering", "no")
+                self.end_headers()
+
+                # Emit character avatar header
+                self.wfile.write("\033[1;35m🐟 : \033[0m".encode("utf-8"))
+                self.wfile.flush()
+
+                def on_chunk_play(chunk_text):
+                    try:
+                        self.wfile.write(f"\033[1;35m{chunk_text} \033[0m".encode("utf-8"))
+                        self.wfile.flush()
+                    except Exception:
+                        pass
+
+                voice_server.speak_stream(text, on_chunk_play=on_chunk_play)
+                try:
+                    self.wfile.write(b"\n")
+                    self.wfile.flush()
+                except Exception:
+                    pass
+            else:
+                threading.Thread(target=voice_server.speak, args=(text,), daemon=True).start()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"status":"speaking"}')
         else:
             self.send_response(404)
             self.end_headers()

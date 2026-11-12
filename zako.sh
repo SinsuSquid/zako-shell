@@ -185,21 +185,22 @@ if [ -n "$RESPONSE" ] && [ "$RESPONSE" != "null" ]; then
         CLEANED_RESP=$(echo "$RESPONSE" | grep -oE '^([^.!?]+[.!?]){1,2}' 2>/dev/null | head -n 1 | tr -d '\n\r')
         RESPONSE="${CLEANED_RESP:-$RESPONSE}"
     fi
-    printf "\033[1;35m🐟 : %s\033[0m\n" "$RESPONSE"
-
-    # Audible Hostile Ergonomics: async voice synthesis
+    # Audible Hostile Ergonomics: Karaoke Lipsync Stream
     if [ "$ZAKO_VOICE" = "1" ] || [ "$ZAKO_VOICE" = "true" ]; then
         VOICE_PORT="${ZAKO_VOICE_PORT:-11435}"
         VOICE_PY="$SCRIPT_DIR/zako-voice.py"
         VOICE_PYTHON="${ZAKO_PYTHON:-$SCRIPT_DIR/.venv/bin/python}"
 
-        # Fast background dispatch: prefer preloaded daemon, fallback to direct python
-        (
-            if curl -s --max-time 0.2 "http://127.0.0.1:${VOICE_PORT}/health" >/dev/null 2>&1; then
-                curl -s --max-time 2 -X POST "http://127.0.0.1:${VOICE_PORT}/speak" -d "$RESPONSE" >/dev/null 2>&1
-            elif [ -x "$VOICE_PYTHON" ] && [ -f "$VOICE_PY" ]; then
-                "$VOICE_PYTHON" "$VOICE_PY" "$RESPONSE" >/dev/null 2>&1
+        # If daemon is active, stream live karaoke lipsync in sync with speech!
+        if curl -s --max-time 0.2 "http://127.0.0.1:${VOICE_PORT}/health" >/dev/null 2>&1; then
+            curl -N -s --max-time 15 -X POST "http://127.0.0.1:${VOICE_PORT}/speak?stream=1" -d "$RESPONSE"
+        else
+            printf "\033[1;35m🐟 : %s\033[0m\n" "$RESPONSE"
+            if [ -x "$VOICE_PYTHON" ] && [ -f "$VOICE_PY" ]; then
+                ( "$VOICE_PYTHON" "$VOICE_PY" "$RESPONSE" >/dev/null 2>&1 ) &
             fi
-        ) &
+        fi
+    else
+        printf "\033[1;35m🐟 : %s\033[0m\n" "$RESPONSE"
     fi
 fi

@@ -16,6 +16,7 @@ import os
 import sys
 import time
 import io
+import queue
 import tempfile
 import subprocess
 import threading
@@ -93,7 +94,24 @@ class VoiceServer:
         self.index = None
         self.big_npy = None
         self.lock = threading.Lock()
+        self.play_queue = queue.Queue()
+        self.player_thread = threading.Thread(target=self._playback_worker, daemon=True)
+        self.player_thread.start()
         self._init_engine()
+
+    def _playback_worker(self):
+        """Asynchronous playback thread: keeps speakers pumping while next chunks convert!"""
+        while True:
+            item = self.play_queue.get()
+            if item is None:
+                break
+            samples, sr = item
+            try:
+                self._play_samples(samples, sr)
+            except Exception as e:
+                print(f"[!] Worker playback error: {e}")
+            finally:
+                self.play_queue.task_done()
 
     def _init_engine(self):
         if not ENABLE_RVC:
@@ -259,7 +277,7 @@ class VoiceServer:
             return None
 
     def speak(self, text: str):
-        """Process and speak text chunk-by-chunk with instant zero-disk in-memory playback."""
+        """Process and speak text chunk-by-chunk with instant pipelined conveyor belt."""
         with self.lock:
             cleaned = zako_voice.clean_text_for_speech(text)
             chunks = zako_voice.split_into_chunks(cleaned)
@@ -275,12 +293,15 @@ class VoiceServer:
 
                     if self.net_g:
                         teto_samples = self._fast_convert(audio_16k, pitch_shift=RVC_PITCH)
-                        self._play_samples(teto_samples, 40000)
+                        self.play_queue.put((teto_samples, 40000))
                     else:
-                        self._play_samples(audio_16k, 16000)
+                        self.play_queue.put((audio_16k, 16000))
 
                 except Exception as e:
-                    print(f"[!] Playback error: {e}")
+                    print(f"[!] Synthesis error on chunk: {e}")
+
+            # Wait for all audio in the conveyor belt to finish playing before releasing lock
+            self.play_queue.join()
 
 
 voice_server = None

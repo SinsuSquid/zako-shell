@@ -1,5 +1,5 @@
 [Unit]
-Description=Zako Hostile Ergonomics Voice Daemon (sherpa-onnx + RVC Miku)
+Description=Zako Hostile Ergonomics Voice Daemon (Kasane Teto RVC)
 After=network.target sound.target pipewire.service
 Wants=pipewire.service
 
@@ -11,8 +11,8 @@ Restart=on-failure
 RestartSec=3
 Environment="PYTHONUNBUFFERED=1"
 Environment="ZAKO_RVC=1"
-Environment="ZAKO_RVC_PITCH=8"
-Environment="ZAKO_RVC_METHOD=pm"
+Environment="ZAKO_RVC_PITCH=2"
+Environment="ZAKO_RVC_METHOD=rmvpe"
 Environment="ZAKO_VOICE_PORT=11435"
 
 [Install]

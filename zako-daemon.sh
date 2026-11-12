@@ -39,14 +39,14 @@ CTX_SIZE="${CTX_SIZE:-512}"
 PID_FILE="/tmp/zako-daemon.pid"
 LOG_FILE="/tmp/zako-daemon.log"
 
-# Voice daemon settings
+# Voice daemon settings (Kasane Teto RVC)
 VOICE_PID_FILE="/tmp/zako-voice-daemon.pid"
 VOICE_LOG_FILE="/tmp/zako-voice-daemon.log"
 VOICE_PORT="${ZAKO_VOICE_PORT:-11435}"
 ENABLE_VOICE="${ZAKO_VOICE_DAEMON:-0}"
 ENABLE_RVC="${ZAKO_RVC:-0}"
-RVC_METHOD="${ZAKO_RVC_METHOD:-pm}"
-RVC_PITCH="${ZAKO_RVC_PITCH:-8}"
+RVC_METHOD="${ZAKO_RVC_METHOD:-rmvpe}"
+RVC_PITCH="${ZAKO_RVC_PITCH:-2}"
 
 # Auto-detect best python interpreter for voice daemon
 detect_voice_python() {
@@ -95,7 +95,7 @@ start_voice_daemon() {
         return 0
     fi
 
-    echo "Starting zako-voice-daemon (RVC=$ENABLE_RVC, pitch=+$RVC_PITCH, method=$RVC_METHOD, Python=$vpy)..."
+    echo "Starting zako-voice-daemon (Kasane Teto, RVC=$ENABLE_RVC, pitch=+$RVC_PITCH, method=$RVC_METHOD, Python=$vpy)..."
     env PYTHONUNBUFFERED=1 ZAKO_RVC="$ENABLE_RVC" ZAKO_RVC_PITCH="$RVC_PITCH" ZAKO_RVC_METHOD="$RVC_METHOD" ZAKO_VOICE_PORT="$VOICE_PORT" setsid "$vpy" -u "$SCRIPT_DIR/zako-voice-daemon.py" < /dev/null > "$VOICE_LOG_FILE" 2>&1 &
     local vpid=$!
     echo "$vpid" > "$VOICE_PID_FILE"
@@ -147,15 +147,14 @@ status_voice_daemon() {
         rvc_pitch=$(echo "$health" | jq -r '.rvc_pitch' 2>/dev/null || echo "0")
         local rvc_method
         rvc_method=$(echo "$health" | jq -r '.rvc_method // empty' 2>/dev/null || echo "")
+        local tts_engine
+        tts_engine=$(echo "$health" | jq -r '.tts_backend // "edge-tts"' 2>/dev/null || echo "edge-tts")
+
         echo "zako-voice-daemon is running at http://127.0.0.1:$VOICE_PORT ♡"
         if [ "$rvc_on" = "true" ]; then
-            if [ -n "$rvc_method" ]; then
-                echo "  Voice Engine: sherpa-onnx + RVC Miku (pitch +$rvc_pitch, method: $rvc_method) 🩵"
-            else
-                echo "  Voice Engine: sherpa-onnx + RVC Miku (pitch +$rvc_pitch) 🩵"
-            fi
+            echo "  Voice Engine: $tts_engine + Kasane Teto ONNX (pitch +$rvc_pitch, method: $rvc_method) 🥖"
         else
-            echo "  Voice Engine: sherpa-onnx GLaDOS (VITS) 🤖"
+            echo "  Voice Engine: $tts_engine 🤖"
         fi
     else
         if [ -f "$VOICE_PID_FILE" ] && kill -0 "$(cat "$VOICE_PID_FILE")" 2>/dev/null; then
@@ -325,7 +324,7 @@ while [ $# -gt 0 ]; do
         --voice|--with-voice)
             ENABLE_VOICE=1
             ;;
-        --rvc)
+        --rvc|--teto)
             ENABLE_VOICE=1
             ENABLE_RVC=1
             ;;
@@ -338,10 +337,12 @@ while [ $# -gt 0 ]; do
             ;;
         --pitch=*)
             RVC_PITCH="${1#*=}"
+            CUSTOM_PITCH=1
             ;;
         --pitch)
             shift
             RVC_PITCH="$1"
+            CUSTOM_PITCH=1
             ;;
         *)
             ;;

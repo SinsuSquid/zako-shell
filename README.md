@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/VRAM-Spent%20on%20Abuse-ff69b4?style=for-the-badge" alt="VRAM Abuse"/>
   <img src="https://img.shields.io/badge/Productivity-Minus%20100%25-ff1493?style=for-the-badge" alt="Zero Productivity"/>
   <img src="https://img.shields.io/badge/Exit%20Code-%E2%89%A0%200%20Only-black?style=for-the-badge" alt="Failures Only"/>
-  <img src="https://img.shields.io/badge/Voice%20Roast-GLaDOS%20%2F%20Miku%20%2B8-39c5bb?style=for-the-badge" alt="Audio Abuse"/>
+  <img src="https://img.shields.io/badge/Voice%20Roast-Kasane%20Teto%20%2B2-d73a49?style=for-the-badge" alt="Audio Abuse"/>
 </p>
 </div>
 
@@ -162,28 +162,28 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 | `ZAKO_BACKEND` | `ollama` | Backend engine (`ollama` or `llama.cpp`) |
 | `ZAKO_VOICE` | `0` | Enable audible Hostile Ergonomics (`1` = enabled) |
 | `ZAKO_VOICE_SPEED` | `1.0` | Speech playback rate multiplier |
-| `ZAKO_RVC` | `0` | Enable RVC voice conversion (Miku) |
-| `ZAKO_RVC_PITCH` | `8` | Semitones to shift pitch (default `+8` for certified anime moe; `+12` for gremlin mode) |
-| `ZAKO_RVC_METHOD` | `pm` | Pitch extraction algorithm (`pm` is fast & CPU-friendly; `rmvpe` or `harvest`) |
+| `ZAKO_RVC` | `1` | Enable RVC voice conversion (`KasaneTeto.onnx`) |
+| `ZAKO_RVC_PITCH` | `2` | Semitones to shift pitch (default `+2` for certified Teto attitude) |
+| `ZAKO_RVC_METHOD` | `rmvpe` | Pitch extraction algorithm (default `rmvpe` for studio quality; `pm` for ultra-fast) |
 
 ---
 
-## 🎙️ Audible Hostile Ergonomics (sherpa-onnx + Optional RVC)
+## 🎙️ Audible Hostile Ergonomics (Kasane Teto RVC)
 
-Want Mesugaki / GLaDOS to actually **verbally roast and giggle at you through your speakers or Bluetooth headphones** every time you fail a command? 📢♡
+Want an AI brat to actually **verbally roast and giggle at you through your speakers or Bluetooth headphones** every time you fail a command? 📢♡
 
-- **Base TTS Engine**: **`sherpa-onnx`** (high-performance C++ ONNX runtime with GLaDOS VITS).
-- **RVC Voice Conversion (Optional)**: Seamlessly transforms GLaDOS into **Hatsune Miku** with **pitch +8** for certified anime moe!
+- **The Voice**: 🥖 **Kasane Teto** (重音テト) — Powered by `edge-tts` (`en-US-AvaNeural`) + ONNX Runtime (`KasaneTeto.onnx`, `pitch +2`). Custom-trained from original UTAU datasets by **[@SinsuSquid](https://github.com/SinsuSquid)** — available on [Hugging Face (`SinsuSquid/Kasane-Teto-UTAU-RVC-v2`)](https://huggingface.co/SinsuSquid/Kasane-Teto-UTAU-RVC-v2)! Peak drill-haired chimera tsundere snark!
 - **Zero-Latency Prosody**: Sentence chunking + acoustic sanitization cleans raw tropes (calibrated `"Haaaaah?"`, snappy `"Zako"` ➔ `"Zacco"`, and teasing drawl `"Zaaaaako"`) and streams audio without blocking your prompt.
 
 ### 1. Setup Voice Environment:
 ```bash
 # Setup self-contained Python 3.10 virtual environment
 uv venv --python 3.10 .venv
-uv pip install --python .venv "sherpa-onnx==1.10.46" soundfile numpy "setuptools<82" "librosa>=0.10" infer-rvc-python
+uv pip install --python .venv "sherpa-onnx==1.10.46" soundfile numpy "setuptools<82" "librosa>=0.10" infer-rvc-python edge-tts onnx onnxruntime
 
-# The GLaDOS VITS ONNX model lives in voices/vits-piper-en_US-glados/
-# Hatsune Miku RVC weights live in voices/infamous_miku_v2/
+# Download Kasane Teto model and retrieval index directly from Hugging Face:
+curl -L -o voices/KasaneTeto.onnx "https://huggingface.co/SinsuSquid/Kasane-Teto-UTAU-RVC-v2/resolve/main/KasaneTeto.onnx"
+curl -L -o voices/KasaneTeto.index "https://huggingface.co/SinsuSquid/Kasane-Teto-UTAU-RVC-v2/resolve/main/KasaneTeto.index"
 ```
 
 ### 2. Enable in Shell:
@@ -196,14 +196,11 @@ Now every mistyped command triggers verbal mockery in the background while your 
 ### 3. Persistent Voice Daemon (Ultra-Fast Preloaded Audio):
 To eliminate model cold-start delays, manage the voice daemon via `zako-daemon.sh`:
 ```bash
-# Start GLaDOS voice daemon:
-./zako-daemon.sh voice-start
-
-# Or start with Hatsune Miku RVC (pitch +8, lightweight pm default):
+# Start Kasane Teto voice daemon (Ava +2, pure ONNX runtime):
 ./zako-daemon.sh voice-start --rvc
 
 # Customize pitch and extraction algorithm (pm, rmvpe, or harvest):
-./zako-daemon.sh voice-restart --rvc --pitch=8 --method=pm
+./zako-daemon.sh voice-restart --rvc --pitch=2 --method=pm
 
 # Check unified daemon status:
 ./zako-daemon.sh status

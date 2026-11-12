@@ -15,6 +15,7 @@ Delivers instant, audible psychological damage (~1.1s latency) whenever exit cod
 import os
 import sys
 import time
+import io
 import tempfile
 import subprocess
 import threading
@@ -151,13 +152,10 @@ class VoiceServer:
                 self.pipe.model_rmvpe = self.rmvpe
 
             # Warmup pass
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as w_in:
-                sf.write(w_in.name, np.zeros(16000, dtype=np.float32), 16000)
-                try:
-                    self._fast_convert(w_in.name, pitch_shift=RVC_PITCH)
-                finally:
-                    if os.path.exists(w_in.name):
-                        os.remove(w_in.name)
+            try:
+                self._fast_convert(np.zeros(16000, dtype=np.float32), pitch_shift=RVC_PITCH)
+            except Exception as e:
+                print(f"[!] Warmup pass notice: {e}")
 
             dur = time.time() - t_start
             index_str = "with FAISS index" if has_index else "without index"
@@ -168,19 +166,41 @@ class VoiceServer:
             traceback.print_exc()
             self.net_g = None
 
-    def _fast_convert(self, in_wav_path: str, pitch_shift: int) -> str:
+    def _play_samples(self, samples: np.ndarray, sample_rate: int):
+        """Zero-disk playback: stream WAV bytes directly to PipeWire via stdin."""
+        buf = io.BytesIO()
+        sf.write(buf, samples, sample_rate, format="WAV")
+        wav_bytes = buf.getvalue()
+        try:
+            p = subprocess.Popen(
+                ["pw-play", "-"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            p.communicate(wav_bytes)
+        except Exception:
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+                tmp.write(wav_bytes)
+                tmp_path = tmp.name
+            try:
+                subprocess.run(["pw-play", tmp_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            finally:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+
+    def _fast_convert(self, audio: np.ndarray, pitch_shift: int) -> np.ndarray:
         """Direct zero-disk-reload in-memory RVC conversion."""
-        audio = self.load_audio(in_wav_path, 16000)
         audio_max = np.abs(audio).max() / 0.95
         if audio_max > 1:
-            audio /= audio_max
+            audio = audio / audio_max
 
         audio = self.signal.filtfilt(self.bh, self.ah, audio)
         audio_pad = np.pad(audio, (self.pipe.t_pad, self.pipe.t_pad), mode="reflect")
         p_len = audio_pad.shape[0] // self.pipe.window
 
         pitch, pitchf = self.pipe.get_f0(
-            in_wav_path, audio_pad, p_len, pitch_shift, RVC_METHOD, 3, None
+            "dummy.wav", audio_pad, p_len, pitch_shift, RVC_METHOD, 3, None
         )
         pitch = pitch[:p_len]
         pitchf = pitchf[:p_len]
@@ -202,41 +222,44 @@ class VoiceServer:
             0.33,
         )
         output_samples = audio_opt[self.pipe.t_pad_tgt : -self.pipe.t_pad_tgt]
+        return output_samples
 
-        out_tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-        sf.write(out_tmp.name, output_samples, 40000)
-        out_tmp.close()
-        return out_tmp.name
-
-    def _synthesize_edge_tts(self, text: str, out_wav: str) -> bool:
-        """Synthesize base audio using Microsoft Edge-TTS."""
+    def _synthesize_edge_tts(self, text: str) -> np.ndarray:
+        """Synthesize base audio in-memory using Microsoft Edge-TTS (zero ffmpeg / zero disk)."""
         try:
             import edge_tts
-            mp3_tmp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
-            mp3_path = mp3_tmp.name
-            mp3_tmp.close()
+            buf = io.BytesIO()
 
             async def _run():
                 communicate = edge_tts.Communicate(text, EDGE_VOICE)
-                await communicate.save(mp3_path)
+                async for chunk in communicate.stream():
+                    if chunk["type"] == "audio":
+                        buf.write(chunk["data"])
 
             asyncio.run(_run())
+            buf.seek(0)
+            if buf.getbuffer().nbytes == 0:
+                return None
 
-            subprocess.run(
-                ["ffmpeg", "-y", "-i", mp3_path, "-ar", "16000", "-ac", "1", out_wav],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                check=True,
-            )
-            if os.path.exists(mp3_path):
-                os.remove(mp3_path)
-            return True
+            audio_24k, sr = sf.read(buf, dtype="float32")
+            if audio_24k.ndim > 1:
+                audio_24k = audio_24k.mean(axis=1)
+
+            # Fast polyphase resample: 24kHz -> 16kHz
+            if sr == 24000:
+                audio_16k = self.signal.resample_poly(audio_24k, 2, 3).astype(np.float32)
+            elif sr != 16000:
+                import librosa
+                audio_16k = librosa.resample(audio_24k, orig_sr=sr, target_sr=16000)
+            else:
+                audio_16k = audio_24k
+            return audio_16k
         except Exception as e:
-            print(f"[!] Edge-TTS synthesis failed: {e}")
-            return False
+            print(f"[!] In-memory Edge-TTS synthesis failed: {e}")
+            return None
 
     def speak(self, text: str):
-        """Process and speak text chunk-by-chunk with instant pipelined playback."""
+        """Process and speak text chunk-by-chunk with instant zero-disk in-memory playback."""
         with self.lock:
             cleaned = zako_voice.clean_text_for_speech(text)
             chunks = zako_voice.split_into_chunks(cleaned)
@@ -245,29 +268,19 @@ class VoiceServer:
                 if not chunk.strip():
                     continue
 
-                in_path = None
-                out_path = None
                 try:
-                    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as in_tmp:
-                        in_path = in_tmp.name
-
-                    success = self._synthesize_edge_tts(chunk, in_path)
-                    if not success:
+                    audio_16k = self._synthesize_edge_tts(chunk)
+                    if audio_16k is None or len(audio_16k) == 0:
                         continue
 
                     if self.net_g:
-                        out_path = self._fast_convert(in_path, pitch_shift=RVC_PITCH)
-                        subprocess.run(["pw-play", out_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        teto_samples = self._fast_convert(audio_16k, pitch_shift=RVC_PITCH)
+                        self._play_samples(teto_samples, 40000)
                     else:
-                        subprocess.run(["pw-play", in_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        self._play_samples(audio_16k, 16000)
 
                 except Exception as e:
                     print(f"[!] Playback error: {e}")
-                finally:
-                    if in_path and os.path.exists(in_path):
-                        os.remove(in_path)
-                    if out_path and os.path.exists(out_path):
-                        os.remove(out_path)
 
 
 voice_server = None

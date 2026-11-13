@@ -47,6 +47,7 @@ ENABLE_VOICE="${ZAKO_VOICE_DAEMON:-0}"
 ENABLE_RVC="${ZAKO_RVC:-0}"
 RVC_METHOD="${ZAKO_RVC_METHOD:-rmvpe}"
 RVC_PITCH="${ZAKO_RVC_PITCH:-3}"
+INDEX_RATE="${ZAKO_INDEX_RATE:-0.75}"
 
 # Auto-detect best python interpreter for voice daemon
 detect_voice_python() {
@@ -95,8 +96,8 @@ start_voice_daemon() {
         return 0
     fi
 
-    echo "Starting zako-voice-daemon (Kasane Teto, RVC=$ENABLE_RVC, pitch=+$RVC_PITCH, method=$RVC_METHOD, Python=$vpy)..."
-    env PYTHONUNBUFFERED=1 ZAKO_RVC="$ENABLE_RVC" ZAKO_RVC_PITCH="$RVC_PITCH" ZAKO_RVC_METHOD="$RVC_METHOD" ZAKO_VOICE_PORT="$VOICE_PORT" setsid "$vpy" -u "$SCRIPT_DIR/zako-voice-daemon.py" < /dev/null > "$VOICE_LOG_FILE" 2>&1 &
+    echo "Starting zako-voice-daemon (Kasane Teto, RVC=$ENABLE_RVC, pitch=+$RVC_PITCH, index_rate=$INDEX_RATE, method=$RVC_METHOD, Python=$vpy)..."
+    env PYTHONUNBUFFERED=1 ZAKO_RVC="$ENABLE_RVC" ZAKO_RVC_PITCH="$RVC_PITCH" ZAKO_INDEX_RATE="$INDEX_RATE" ZAKO_RVC_METHOD="$RVC_METHOD" ZAKO_VOICE_PORT="$VOICE_PORT" setsid "$vpy" -u "$SCRIPT_DIR/zako-voice-daemon.py" < /dev/null > "$VOICE_LOG_FILE" 2>&1 &
     local vpid=$!
     echo "$vpid" > "$VOICE_PID_FILE"
     disown "$vpid" 2>/dev/null || true
@@ -344,6 +345,15 @@ while [ $# -gt 0 ]; do
             RVC_PITCH="$1"
             CUSTOM_PITCH=1
             ;;
+        --index-rate=*)
+            INDEX_RATE="${1#*=}"
+            CUSTOM_PITCH=1
+            ;;
+        --index-rate)
+            shift
+            INDEX_RATE="$1"
+            CUSTOM_PITCH=1
+            ;;
         *)
             ;;
     esac
@@ -385,13 +395,14 @@ case "$ACTION" in
         run_foreground
         ;;
     *)
-        echo "Usage: $0 {start|stop|restart|status|voice-start|voice-stop|voice-status|voice-restart|run} [--voice] [--rvc] [--pitch=<n>] [--method=pm|rmvpe|harvest]"
+        echo "Usage: $0 {start|stop|restart|status|voice-start|voice-stop|voice-status|voice-restart|run} [--voice] [--rvc] [--pitch=<n>] [--index-rate=<0-1>] [--method=pm|rmvpe|harvest]"
         echo "Options:"
         echo "  --voice, --with-voice         Start persistent voice daemon alongside LLM backend"
         echo "  --rvc                         Enable RVC voice conversion (Miku)"
         echo "  --pitch=<n>                   RVC pitch shift semitones (default: 3)"
+        echo "  --index-rate=<0-1>            Teto timbre retrieval strength (default: 0.75)"
         echo "  --method=<pm|rmvpe|harvest>   Pitch extraction algorithm (default: pm)"
-        echo "Environment variables: BACKEND=ollama|llama.cpp, ZAKO_MODEL=zako-tease, ZAKO_RVC=1, ZAKO_RVC_PITCH=3, ZAKO_RVC_METHOD=pm"
+        echo "Environment variables: BACKEND=ollama|llama.cpp, ZAKO_MODEL=zako-tease, ZAKO_RVC=1, ZAKO_RVC_PITCH=3, ZAKO_INDEX_RATE=0.75, ZAKO_RVC_METHOD=pm"
         exit 1
         ;;
 esac

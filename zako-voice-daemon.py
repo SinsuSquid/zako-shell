@@ -340,6 +340,7 @@ class VoiceHTTPHandler(BaseHTTPRequestHandler):
                 "character": "teto",
                 "rvc_enabled": (voice_server.net_g is not None) if voice_server else False,
                 "rvc_pitch": RVC_PITCH,
+                "index_rate": INDEX_RATE,
                 "rvc_method": RVC_METHOD,
                 "tts_backend": f"edge-tts ({EDGE_VOICE})",
                 "engine": "fast-in-memory-onnx",

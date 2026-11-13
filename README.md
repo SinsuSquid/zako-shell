@@ -165,6 +165,7 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 | `ZAKO_VOICE_SPEED` | `1.0` | Speech playback rate multiplier |
 | `ZAKO_RVC` | `1` | Enable RVC voice conversion (`KasaneTeto.onnx`) |
 | `ZAKO_RVC_PITCH` | `3` | Semitones to shift pitch (default `+3` for certified Teto attitude) |
+| `ZAKO_INDEX_RATE` | `0.75` | Teto timbre retrieval strength, 0-1 (higher = more Teto, lower = clearer words) |
 | `ZAKO_RVC_METHOD` | `rmvpe` | Pitch extraction algorithm (default `rmvpe` for studio quality; `pm` for ultra-fast) |
 
 ---
@@ -201,7 +202,7 @@ To eliminate model cold-start delays, manage the voice daemon via `zako-daemon.s
 ./zako-daemon.sh voice-start --rvc
 
 # Customize pitch and extraction algorithm (pm, rmvpe, or harvest):
-./zako-daemon.sh voice-restart --rvc --pitch=3 --method=pm
+./zako-daemon.sh voice-restart --rvc --pitch=3 --index-rate=0.75 --method=pm
 
 # Check unified daemon status:
 ./zako-daemon.sh status

@@ -11,7 +11,7 @@ Restart=on-failure
 RestartSec=3
 Environment="PYTHONUNBUFFERED=1"
 Environment="ZAKO_RVC=1"
-Environment="ZAKO_RVC_PITCH=2"
+Environment="ZAKO_RVC_PITCH=3"
 Environment="ZAKO_RVC_METHOD=rmvpe"
 Environment="ZAKO_VOICE_PORT=11435"
 

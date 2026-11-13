@@ -8,7 +8,7 @@ Powered exclusively by Kasane Teto (重音テト) RVC v2:
   * Preloaded RMVPE deep pitch estimator (studio quality)
   * Preloaded FAISS vector retrieval index (zero disk reload lag)
   * Optimized ONNX Runtime engine (KasaneTeto.onnx, 6 threads, ORT_ENABLE_ALL)
-- Pitch: +2 (The Calibrated Sweet Spot)
+- Pitch: +3 (The Calibrated Sweet Spot)
 Delivers instant, audible psychological damage (~1.1s latency) whenever exit code != 0.
 """
 
@@ -61,8 +61,8 @@ TETO_ONNX_PATH = os.environ.get("ZAKO_TETO_MODEL", os.path.join(SCRIPT_DIR, "voi
 TETO_INDEX_PATH = os.environ.get("ZAKO_TETO_INDEX", os.path.join(SCRIPT_DIR, "voices", "KasaneTeto.index"))
 RMVPE_PATH = os.environ.get("ZAKO_RMVPE_PATH", os.path.join(SCRIPT_DIR, "rmvpe.pt"))
 
-# RVC Parameters (Default: +2 pitch, rmvpe method)
-RVC_PITCH = int(os.environ.get("ZAKO_RVC_PITCH", "2"))
+# RVC Parameters (Default: +3 pitch, rmvpe method)
+RVC_PITCH = int(os.environ.get("ZAKO_RVC_PITCH", "3"))
 RVC_METHOD = os.environ.get("ZAKO_RVC_METHOD", "rmvpe")
 INDEX_RATE = float(os.environ.get("ZAKO_INDEX_RATE", "0.75"))
 CPU_THREADS = int(os.environ.get("ZAKO_CPU_THREADS", "6"))

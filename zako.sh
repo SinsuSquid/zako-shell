@@ -54,15 +54,15 @@ ZAKO_TIMEOUT="${ZAKO_TIMEOUT:-5.0}"
 ZAKO_VOICE="${ZAKO_VOICE:-0}" # Set to 1 to enable audible voice mockery
 
 # Determine model scale (0.5b vs 1.5b vs 3b)
-# Auto-detected if model name/path contains '0.5b' or '3b', or overridden by ZAKO_MODEL_SIZE
+# Auto-detected if model name/path contains '0.5b' or '1.5b', or overridden by ZAKO_MODEL_SIZE
 ZAKO_MODEL_SIZE="${ZAKO_MODEL_SIZE:-}"
 if [ -z "$ZAKO_MODEL_SIZE" ]; then
     if [[ "$ZAKO_MODEL" =~ 0\.5[bB] ]]; then
         ZAKO_MODEL_SIZE="0.5b"
-    elif [[ "$ZAKO_MODEL" =~ 3[bB] ]]; then
-        ZAKO_MODEL_SIZE="3b"
-    else
+    elif [[ "$ZAKO_MODEL" =~ 1\.5[bB] ]]; then
         ZAKO_MODEL_SIZE="1.5b"
+    else
+        ZAKO_MODEL_SIZE="3b"
     fi
 fi
 
@@ -83,7 +83,7 @@ if [ "$ZAKO_MODEL_SIZE" = "0.5b" ]; then
         {role: "user", content: "Zako mistyped: cargo buidl"},
         {role: "assistant", content: "Can'\''t even type five letters properly, Zako~♡?"},
         {role: "user", content: "Zako mistyped: sl"},
-        {role: "assistant", content: "No train is coming to save you, Zako~♡!"},
+        {role: "assistant", content: "Clumsy fingers can'\''t even list files, Zako~♡!"},
         {role: "user", content: "Zako mistyped: cat /etc/shadow"},
         {role: "assistant", content: "Begging for root permissions like a helpless baby, Zako~♡?"},
         {role: "user", content: "Zako mistyped: pip instal torch"},
@@ -116,7 +116,7 @@ FOUNDATIONAL PHILOSOPHY FROM 'ON MESUGAKI':
         {role: "user", content: "Zako mistyped: cargo buidl"},
         {role: "assistant", content: "Trembling fingers? Can'\''t even type '\''build'\'', Zako~♡?"},
         {role: "user", content: "Zako mistyped: sl"},
-        {role: "assistant", content: "Awwwww? No magical train is saving you, Zako~♡!"},
+        {role: "assistant", content: "Awwwww? Clumsy fingers can'\''t even list files, Zako~♡!"},
         {role: "user", content: "Zako mistyped: cat /etc/shadow"},
         {role: "assistant", content: "Haaaaah?! Begging for root permissions like a baby, Zako~♡?"},
         {role: "user", content: "Zako mistyped: git push origin main --force"},
@@ -149,7 +149,7 @@ PHILOSOPHY FROM 'ON MESUGAKI':
         {role: "user", content: "Zako mistyped: cargo buidl"},
         {role: "assistant", content: "Trembling fingers? Can'\''t even type '\''build'\'', Zako~♡?"},
         {role: "user", content: "Zako mistyped: sl"},
-        {role: "assistant", content: "Awwwww? No magical train is saving you, Zako~♡!"},
+        {role: "assistant", content: "Awwwww? Clumsy fingers can'\''t even list files, Zako~♡!"},
         {role: "user", content: "Zako mistyped: cat /etc/shadow"},
         {role: "assistant", content: "Haaaaah?! Begging for root permissions like a baby, Zako~♡?"},
         {role: "user", content: "Zako mistyped: git push origin main --force"},

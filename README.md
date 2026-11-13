@@ -75,13 +75,14 @@ The fastest way to get completely insulted:
 
 #### 1. Build the Models:
 ```bash
-# === 3B Model (High Wit & Devastating Nuance) ===
+# === 3B Model (Recommended Default: High Wit & Devastating Nuance) ===
 ollama pull qwen2.5:3b
 ollama create zako-tease:3b -f Modelfiles/Modelfile.3b
+ollama cp zako-tease:3b zako-tease
 
-# === 1.5B Model (Recommended default) ===
+# === 1.5B Model (Ultra-fast / Low RAM) ===
 ollama pull qwen2.5:1.5b
-ollama create zako-tease -f Modelfiles/Modelfile.1.5b
+ollama create zako-tease:1.5b -f Modelfiles/Modelfile.1.5b
 
 # === 0.5B Model (Ultra-lightweight / Low RAM) ===
 ollama pull qwen2.5:0.5b

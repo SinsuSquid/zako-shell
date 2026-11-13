@@ -29,7 +29,7 @@ RESET="\033[0m"
 NON_INTERACTIVE=0
 DRY_RUN=0
 TARGET_SHELL="auto"
-MODEL_CHOICE="1.5b"
+MODEL_CHOICE="3b"
 SETUP_MODEL=1
 SETUP_VOICE=0
 SETUP_SYSTEMD=0
@@ -44,8 +44,8 @@ ${BOLD}Options:${RESET}
   -y, --yes, --force        Non-interactive mode (use defaults without confirmation prompts)
   --shell=<bash|zsh|fish|all>
                             Target shell for hook injection (default: auto-detect from \$SHELL)
-  --model=<1.5b|3b|0.5b|none>
-                            Ollama model persona to pull and build (default: 1.5b)
+  --model=<3b|1.5b|0.5b|none>
+                            Ollama model persona to pull and build (default: 3b)
   --no-model                Skip pulling and building Ollama models
   --with-voice              Set up Python voice environment (.venv) for sherpa-onnx + RVC
   --systemd                 Install and enable systemd user services for auto-start
@@ -365,16 +365,16 @@ else
     if [ -x "$OLLAMA_BIN" ]; then
         if [ "$NON_INTERACTIVE" -eq 0 ] && [ "$DRY_RUN" -eq 0 ]; then
             echo -e "  Select your preferred Mesugaki model scale:"
-            echo -e "    1) ${BOLD}1.5b${RESET} (Recommended default: rich wit & zero latency)"
-            echo -e "    2) ${BOLD}3b${RESET}   (High wit & devastating nuance)"
+            echo -e "    1) ${BOLD}3b${RESET}   (Recommended default: high wit & devastating nuance)"
+            echo -e "    2) ${BOLD}1.5b${RESET} (Ultra-fast / low RAM)"
             echo -e "    3) ${BOLD}0.5b${RESET} (Ultra-lightweight / low RAM)"
             echo -e "    4) Skip model build"
             read -rp "  Enter choice [1-4] (default: 1): " mc
             case "$mc" in
-                2|3b|3B) MODEL_CHOICE="3b" ;;
+                2|1.5b|1.5B) MODEL_CHOICE="1.5b" ;;
                 3|0.5b|0.5B) MODEL_CHOICE="0.5b" ;;
                 4|skip|none) MODEL_CHOICE="none" ;;
-                *) MODEL_CHOICE="1.5b" ;;
+                *) MODEL_CHOICE="3b" ;;
             esac
         fi
 
@@ -409,6 +409,9 @@ else
                     "$OLLAMA_BIN" pull "$target_base"
                     log_info "Creating personalized '$target_model' model..."
                     "$OLLAMA_BIN" create "$target_model" -f "$modelfile"
+                    if [ "$target_model" != "zako-tease" ]; then
+                        "$OLLAMA_BIN" cp "$target_model" zako-tease 2>/dev/null || true
+                    fi
                     log_ok "Model '$target_model' successfully built and ready ♡"
                 fi
             fi

@@ -164,7 +164,7 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 | `ZAKO_VOICE` | `0` | Enable audible Hostile Ergonomics (`1` = enabled) |
 | `ZAKO_VOICE_SPEED` | `1.0` | Speech playback rate multiplier |
 | `ZAKO_RVC` | `1` | Enable RVC voice conversion (`KasaneTeto.onnx`) |
-| `ZAKO_RVC_PITCH` | `3` | Semitones to shift pitch (default `+3` for certified Teto attitude) |
+| `ZAKO_RVC_PITCH` | `5` | Semitones to shift pitch (default `+5` for certified Teto attitude) |
 | `ZAKO_INDEX_RATE` | `0.75` | Teto timbre retrieval strength, 0-1 (higher = more Teto, lower = clearer words) |
 | `ZAKO_RVC_METHOD` | `rmvpe` | Pitch extraction algorithm (default `rmvpe` for studio quality; `pm` for ultra-fast) |
 
@@ -174,7 +174,7 @@ Tune your abuse parameters using environment variables in your shell profile (`~
 
 Want an AI brat to actually **verbally roast and giggle at you through your speakers or Bluetooth headphones** every time you fail a command? 📢♡
 
-- **The Voice**: 🥖 **Kasane Teto** (重音テト) — Powered by `edge-tts` (`en-US-AvaNeural`) + ONNX Runtime (`KasaneTeto.onnx`, `pitch +3`). Custom-trained from original UTAU datasets by **[@SinsuSquid](https://github.com/SinsuSquid)** — available on [Hugging Face (`SinsuSquid/Kasane-Teto-UTAU-RVC-v2`)](https://huggingface.co/SinsuSquid/Kasane-Teto-UTAU-RVC-v2)! Peak drill-haired chimera tsundere snark!
+- **The Voice**: 🥖 **Kasane Teto** (重音テト) — Powered by `edge-tts` (`en-US-AvaNeural`) + ONNX Runtime (`KasaneTeto.onnx`, `pitch +5`). Custom-trained from original UTAU datasets by **[@SinsuSquid](https://github.com/SinsuSquid)** — available on [Hugging Face (`SinsuSquid/Kasane-Teto-UTAU-RVC-v2`)](https://huggingface.co/SinsuSquid/Kasane-Teto-UTAU-RVC-v2)! Peak drill-haired chimera tsundere snark!
 - **Zero-Latency Prosody**: Sentence chunking + acoustic sanitization cleans raw tropes (calibrated `"Haaaaah?"`, snappy `"Zako"` ➔ `"Zacco"`, and teasing drawl `"Zaaaaako"`) and streams audio without blocking your prompt.
 
 ### 1. Setup Voice Environment:
@@ -202,7 +202,7 @@ To eliminate model cold-start delays, manage the voice daemon via `zako-daemon.s
 ./zako-daemon.sh voice-start --rvc
 
 # Customize pitch and extraction algorithm (pm, rmvpe, or harvest):
-./zako-daemon.sh voice-restart --rvc --pitch=3 --index-rate=0.75 --method=pm
+./zako-daemon.sh voice-restart --rvc --pitch=5 --index-rate=0.75 --method=pm
 
 # Check unified daemon status:
 ./zako-daemon.sh status

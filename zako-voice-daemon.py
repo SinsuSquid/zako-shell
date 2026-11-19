@@ -24,6 +24,8 @@ import threading
 import json
 import asyncio
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
+from typing import Optional
 import soundfile as sf
 import numpy as np
 
@@ -213,7 +215,7 @@ class VoiceServer:
                 if os.path.exists(tmp_path):
                     os.remove(tmp_path)
 
-    def _fast_convert(self, audio: np.ndarray, pitch_shift: int) -> np.ndarray:
+    def _fast_convert(self, audio: np.ndarray, pitch_shift: int, index_rate: Optional[float] = None) -> np.ndarray:
         """Direct zero-disk-reload in-memory RVC conversion."""
         audio_max = np.abs(audio).max() / 0.95
         if audio_max > 1:
@@ -231,6 +233,7 @@ class VoiceServer:
         pitch = torch.tensor(pitch, device="cpu").unsqueeze(0).long()
         pitchf = torch.tensor(pitchf, device="cpu").unsqueeze(0).float()
 
+        eff_rate = index_rate if index_rate is not None else INDEX_RATE
         audio_opt = self.pipe.vc(
             self.hubert,
             self.net_g,
@@ -241,7 +244,7 @@ class VoiceServer:
             [0, 0, 0],
             self.index,
             self.big_npy,
-            INDEX_RATE if self.index else 0.0,
+            eff_rate if self.index else 0.0,
             "v2",
             0.33,
         )
@@ -282,12 +285,14 @@ class VoiceServer:
             print(f"[!] In-memory Edge-TTS synthesis failed: {e}")
             return None
 
-    def speak(self, text: str):
+    def speak(self, text: str, pitch_shift: Optional[int] = None, index_rate: Optional[float] = None):
         """Process and speak text chunk-by-chunk with instant pipelined conveyor belt."""
-        self.speak_stream(text, on_chunk_play=None)
+        self.speak_stream(text, pitch_shift=pitch_shift, index_rate=index_rate, on_chunk_play=None)
 
-    def speak_stream(self, text: str, on_chunk_play=None):
+    def speak_stream(self, text: str, pitch_shift: Optional[int] = None, index_rate: Optional[float] = None, on_chunk_play=None):
         """Process and speak text chunk-by-chunk with sample-accurate lipsync callbacks."""
+        eff_pitch = pitch_shift if pitch_shift is not None else RVC_PITCH
+        eff_index = index_rate if index_rate is not None else INDEX_RATE
         with self.lock:
             # Strip ANSI and avatar header if present, preserving original casing & 'Zako'
             raw_text = re.sub(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])", "", text)
@@ -311,7 +316,7 @@ class VoiceServer:
                     cb = (lambda d=display_chunk: on_chunk_play(d)) if on_chunk_play else None
 
                     if self.net_g:
-                        teto_samples = self._fast_convert(audio_16k, pitch_shift=RVC_PITCH)
+                        teto_samples = self._fast_convert(audio_16k, pitch_shift=eff_pitch, index_rate=eff_index)
                         self.play_queue.put((teto_samples, 40000, cb))
                     else:
                         self.play_queue.put((audio_16k, 16000, cb))
@@ -355,11 +360,27 @@ class VoiceHTTPHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length).decode("utf-8", errors="replace")
 
+            pitch_override = None
+            index_override = None
+            try:
+                qs = parse_qs(urlparse(self.path).query)
+                if "pitch" in qs:
+                    pitch_override = int(qs["pitch"][0])
+                if "index_rate" in qs:
+                    index_override = float(qs["index_rate"][0])
+            except Exception:
+                pass
+
             text = body
             try:
                 data = json.loads(body)
-                if isinstance(data, dict) and "text" in data:
-                    text = data["text"]
+                if isinstance(data, dict):
+                    if "text" in data:
+                        text = data["text"]
+                    if "pitch" in data:
+                        pitch_override = int(data["pitch"])
+                    if "index_rate" in data:
+                        index_override = float(data["index_rate"])
             except Exception:
                 pass
 
@@ -388,14 +409,18 @@ class VoiceHTTPHandler(BaseHTTPRequestHandler):
                     except Exception:
                         pass
 
-                voice_server.speak_stream(text, on_chunk_play=on_chunk_play)
+                voice_server.speak_stream(text, pitch_shift=pitch_override, index_rate=index_override, on_chunk_play=on_chunk_play)
                 try:
                     self.wfile.write(b"\n")
                     self.wfile.flush()
                 except Exception:
                     pass
             else:
-                threading.Thread(target=voice_server.speak, args=(text,), daemon=True).start()
+                threading.Thread(
+                    target=voice_server.speak,
+                    args=(text, pitch_override, index_override),
+                    daemon=True,
+                ).start()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
